@@ -2,9 +2,11 @@ package edu.washington.escience.myria.operator.network.partition;
 
 import javax.annotation.Nonnull;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 
 import edu.washington.escience.myria.storage.TupleBatch;
+import edu.washington.escience.myria.util.MyriaArrayUtils;
 
 /**
  * Multiple field multiple dimension hash partition function for HyperCubeJoin.
@@ -20,24 +22,44 @@ public final class MFMDHashPartitionFunction extends PartitionFunction {
    */
   private final HashPartitionFunction[] pfs;
 
-  /**
-   * mappings from cells to partitions.
-   */
-  private final int[][] cellPartition;
+  /** mappings from cells to destinations. */
+  @JsonProperty
+  public final int[][] cellPartition;
+
+  /** the sizes of each dimension of the hypercube. */
+  @JsonProperty
+  public final int[] hypercubeDimensions;
+
+  /** which fields are hashed/ */
+  @JsonProperty
+  public final int[] hashedColumns;
+
+  /** mapped hypercube dimensions of hashed columns */
+  @JsonProperty
+  public final int[] mappedHCDimensions;
 
   /**
-   * 
-   * @param numCells number of cells.
    * @param cellPartition mappings from cells to partitions.
    * @param hypercubeDimensions the sizes of each dimension of the hypercube.
    * @param hashedColumns which fields are hashed.
    * @param mappedHCDimensions mapped hypercube dimensions of hashed columns.
    * 
    */
-  public MFMDHashPartitionFunction(final int numCells, final int[][] cellPartition, final int[] hypercubeDimensions,
-      final int[] hashedColumns, final int[] mappedHCDimensions) {
-    super(numCells);
+  public MFMDHashPartitionFunction(@Nonnull @JsonProperty("cellPartition") final int[][] cellPartition,
+      @Nonnull @JsonProperty("hypercubeDimensions") final int[] hypercubeDimensions,
+      @Nonnull @JsonProperty("hashedColumns") final int[] hashedColumns,
+      @Nonnull @JsonProperty("mappedHCDimensions") final int[] mappedHCDimensions) {
+    super(null);
+    int[] arr = MyriaArrayUtils.arrayFlattenThenSort(cellPartition);
+    for (int i = 0; i < arr.length; i++) {
+      Preconditions.checkArgument(arr[i] == i, "invalid cell partition");
+    }
+    setNumDestinations(arr.length);
+
     this.cellPartition = cellPartition;
+    this.hypercubeDimensions = hypercubeDimensions;
+    this.hashedColumns = hashedColumns;
+    this.mappedHCDimensions = mappedHCDimensions;
     pfs = new HashPartitionFunction[hashedColumns.length];
     for (int i = 0; i < hashedColumns.length; ++i) {
       Preconditions.checkPositionIndex(hashedColumns[i], hypercubeDimensions.length);

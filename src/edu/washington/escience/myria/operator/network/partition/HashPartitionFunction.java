@@ -35,7 +35,7 @@ public final class HashPartitionFunction extends PartitionFunction {
    * @param seedIndex the index of the chosen hashcode
    */
   public HashPartitionFunction(@Nullable @JsonProperty("numDestinations") final Integer numDestinations,
-      @JsonProperty(value = "indexes", required = true) final int[] indexes) {
+      @Nonnull @JsonProperty(value = "indexes") final int[] indexes) {
     super(numDestinations);
     Objects.requireNonNull(indexes, "indexes");
     Preconditions.checkArgument(indexes.length > 0, "hash function requires at least 1 field to hash");
