@@ -1,6 +1,6 @@
 package edu.washington.escience.myria.operator.network.partition;
 
-import java.util.Arrays;
+import javax.annotation.Nonnull;
 
 import com.google.common.base.Preconditions;
 
@@ -18,45 +18,43 @@ public final class MFMDHashPartitionFunction extends PartitionFunction {
   /**
    * Partition functions on different dimensions.
    */
-  private final SingleFieldHashPartitionFunction[] partitionFunctions;
+  private final SingleFieldHashPartitionFunction[] pfs;
+
+  /**
+   * mappings from cells to partitions.
+   */
+  private final int[][] cellPartition;
 
   /**
    * 
-   * @param numPartitions number of buckets
+   * @param numCells number of cells.
+   * @param cellPartition mappings from cells to partitions.
    * @param hypercubeDimensions the sizes of each dimension of the hypercube.
    * @param hashedColumns which fields are hashed.
    * @param mappedHCDimensions mapped hypercube dimensions of hashed columns.
    * 
    */
-  public MFMDHashPartitionFunction(final int numPartitions, final int[] hypercubeDimensions, final int[] hashedColumns,
-      final int[] mappedHCDimensions) {
-    super(numPartitions);
-    partitionFunctions = new SingleFieldHashPartitionFunction[hashedColumns.length];
+  public MFMDHashPartitionFunction(final int numCells, final int[][] cellPartition, final int[] hypercubeDimensions,
+      final int[] hashedColumns, final int[] mappedHCDimensions) {
+    super(numCells);
+    this.cellPartition = cellPartition;
+    pfs = new SingleFieldHashPartitionFunction[hashedColumns.length];
     for (int i = 0; i < hashedColumns.length; ++i) {
       Preconditions.checkPositionIndex(hashedColumns[i], hypercubeDimensions.length);
       Preconditions.checkArgument(hashedColumns.length == mappedHCDimensions.length,
           "hashedColumns must have the same arity as mappedHCDimensions");
-      partitionFunctions[i] =
-          new SingleFieldHashPartitionFunction(hypercubeDimensions[mappedHCDimensions[i]], hashedColumns[i],
-              mappedHCDimensions[i]);
+      pfs[i] = new SingleFieldHashPartitionFunction(hypercubeDimensions[mappedHCDimensions[i]], hashedColumns[i],
+          mappedHCDimensions[i]);
     }
   }
 
   @Override
-  public int[] partition(final TupleBatch tb) {
-    int[] result = new int[tb.numTuples()];
-    Arrays.fill(result, 0);
-    for (int i = 0; i < partitionFunctions.length; i++) {
-      int[] p = partitionFunctions[i].partition(tb);
-      for (int j = 0; j < tb.numTuples(); j++) {
-        result[j] = result[j] + p[j];
-        if (i != partitionFunctions.length - 1) {
-          result[j] = result[j] * partitionFunctions[i + 1].numPartition();
-        }
-      }
+  public int[] distribute(@Nonnull final TupleBatch tb, final int row) {
+    int p = 0;
+    for (int i = 0; i < pfs.length - 1; i++) {
+      p = (p + pfs[i].distribute(tb, row)[0]) * pfs[i + 1].numDestinations();
     }
-
-    return result;
+    p = p + pfs[pfs.length - 1].distribute(tb, row)[0];
+    return cellPartition[p];
   }
-
 }

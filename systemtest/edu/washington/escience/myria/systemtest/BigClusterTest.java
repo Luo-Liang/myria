@@ -30,7 +30,7 @@ import edu.washington.escience.myria.operator.network.CollectConsumer;
 import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
-import edu.washington.escience.myria.operator.network.partition.FixValuePartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.SinglePartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.parallel.QueryFuture;
 import edu.washington.escience.myria.parallel.SocketInfo;
@@ -145,9 +145,7 @@ public class BigClusterTest extends SystemTestBase {
 
     final GenericShuffleProducer[] bps = new GenericShuffleProducer[NUM_BROADCAST];
     for (int i = 0; i < bps.length; i++) {
-      bps[i] =
-          new GenericShuffleProducer(scans[i], broadcastIDs[i], broadcastPartition, workerIDs,
-              new FixValuePartitionFunction(0));
+      bps[i] = new GenericShuffleProducer(scans[i], broadcastIDs[i], workerIDs, new SinglePartitionFunction());
     }
 
     /* Set consumer */
@@ -180,9 +178,8 @@ public class BigClusterTest extends SystemTestBase {
     assumeTrue(false);
     final int NUM_DUPLICATES = 1;
 
-    URL url =
-        new URL(String.format("http://%s:%d/dataset/download_test?num_tb=%d&format=%s", "localhost", masterDaemonPort,
-            NUM_DUPLICATES, "json"));
+    URL url = new URL(String.format("http://%s:%d/dataset/download_test?num_tb=%d&format=%s", "localhost",
+        masterDaemonPort, NUM_DUPLICATES, "json"));
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.setDoOutput(true);
     conn.setRequestMethod("GET");

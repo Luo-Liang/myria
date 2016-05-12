@@ -13,7 +13,6 @@ import edu.washington.escience.myria.operator.network.partition.MultiFieldHashPa
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.RoundRobinPartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
-import edu.washington.escience.myria.operator.network.partition.WholeTupleHashPartitionFunction;
 
 public class SerializationTests {
 
@@ -37,33 +36,26 @@ public class SerializationTests {
     serialized = mapper.writeValueAsString(pf);
     deserialized = reader.readValue(serialized);
     assertEquals(pf.getClass(), deserialized.getClass());
-    assertEquals(5, deserialized.numPartition());
+    assertEquals(5, deserialized.numDestinations());
     SingleFieldHashPartitionFunction pfSFH = (SingleFieldHashPartitionFunction) deserialized;
     assertEquals(3, pfSFH.getIndex());
 
     /* Multi-field hash */
-    int multiFieldIndex[] = new int[] { 3, 4, 2 };
+    int[] multiFieldIndex = new int[] { 3, 4, 2 };
     pf = new MultiFieldHashPartitionFunction(5, multiFieldIndex);
     serialized = mapper.writeValueAsString(pf);
     deserialized = reader.readValue(serialized);
     assertEquals(pf.getClass(), deserialized.getClass());
-    assertEquals(5, deserialized.numPartition());
+    assertEquals(5, deserialized.numDestinations());
     MultiFieldHashPartitionFunction pfMFH = (MultiFieldHashPartitionFunction) deserialized;
     assertArrayEquals(multiFieldIndex, pfMFH.getIndexes());
-
-    /* Whole tuple hash */
-    pf = new WholeTupleHashPartitionFunction(5);
-    serialized = mapper.writeValueAsString(pf);
-    deserialized = reader.readValue(serialized);
-    assertEquals(pf.getClass(), deserialized.getClass());
-    assertEquals(5, deserialized.numPartition());
 
     /* RoundRobin */
     pf = new RoundRobinPartitionFunction(5);
     serialized = mapper.writeValueAsString(pf);
     deserialized = reader.readValue(serialized);
     assertEquals(pf.getClass(), deserialized.getClass());
-    assertEquals(5, deserialized.numPartition());
+    assertEquals(5, deserialized.numDestinations());
   }
 
   @Test

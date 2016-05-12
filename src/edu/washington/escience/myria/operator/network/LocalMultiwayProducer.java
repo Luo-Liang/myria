@@ -1,11 +1,9 @@
 package edu.washington.escience.myria.operator.network;
 
 import edu.washington.escience.myria.operator.Operator;
-import edu.washington.escience.myria.operator.network.partition.FixValuePartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.BroadcastPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.parallel.ipc.IPCConnectionPool;
-import edu.washington.escience.myria.storage.TupleBatch;
-import edu.washington.escience.myria.util.MyriaArrayUtils;
 
 /**
  * The producer part of the Collect Exchange operator.
@@ -21,14 +19,9 @@ public final class LocalMultiwayProducer extends GenericShuffleProducer {
   /**
    * @param child the child who provides data for this producer to distribute.
    * @param operatorIDs destination operators the data goes
-   * */
+   */
   public LocalMultiwayProducer(final Operator child, final ExchangePairID[] operatorIDs) {
-    super(child, operatorIDs, MyriaArrayUtils.create2DHorizontalIndex(operatorIDs.length),
-        new int[] { IPCConnectionPool.SELF_IPC_ID }, new FixValuePartitionFunction(0), false);
+    super(child, operatorIDs, IPCConnectionPool.SELF_IPC_ID, new BroadcastPartitionFunction(operatorIDs.length));
   }
 
-  @Override
-  protected TupleBatch[] getTupleBatchPartitions(final TupleBatch tup) {
-    return new TupleBatch[] { tup };
-  }
 }

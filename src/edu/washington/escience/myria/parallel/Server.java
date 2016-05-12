@@ -956,7 +956,7 @@ public final class Server {
 
     /* The master plan: send the tuples out. */
     ExchangePairID scatterId = ExchangePairID.newID();
-    pf.setNumPartitions(workersArray.length);
+    pf.setNumDestinations(workersArray.length);
     GenericShuffleProducer scatter = new GenericShuffleProducer(source, scatterId, workersArray, pf);
 
     /* The workers' plan */

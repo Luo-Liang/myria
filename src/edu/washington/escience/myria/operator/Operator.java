@@ -15,6 +15,7 @@ import com.google.common.collect.ImmutableSet;
 
 import edu.washington.escience.myria.DbException;
 import edu.washington.escience.myria.MyriaConstants;
+import edu.washington.escience.myria.MyriaConstants.FTMode;
 import edu.washington.escience.myria.MyriaConstants.ProfilingMode;
 import edu.washington.escience.myria.Schema;
 import edu.washington.escience.myria.parallel.LocalFragment;
@@ -158,6 +159,10 @@ public abstract class Operator implements Serializable {
     this.fragmentId = fragmentId;
   }
 
+  protected FTMode getFTMode() {
+    return getLocalSubQuery().getFTMode();
+  }
+
   /**
    * @return the profiling modes.
    */
@@ -168,8 +173,8 @@ public abstract class Operator implements Serializable {
       return ImmutableSet.of();
     }
     if (profilingMode == null) {
-      LocalFragmentResourceManager lfrm =
-          (LocalFragmentResourceManager) execEnvVars.get(MyriaConstants.EXEC_ENV_VAR_FRAGMENT_RESOURCE_MANAGER);
+      LocalFragmentResourceManager lfrm = (LocalFragmentResourceManager) execEnvVars.get(
+          MyriaConstants.EXEC_ENV_VAR_FRAGMENT_RESOURCE_MANAGER);
       if (lfrm == null) {
         return ImmutableSet.of();
       }

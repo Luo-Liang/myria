@@ -19,7 +19,7 @@ import edu.washington.escience.myria.operator.network.CollectConsumer;
 import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
-import edu.washington.escience.myria.operator.network.partition.FixValuePartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.BroadcastPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.storage.TupleBatchBuffer;
@@ -59,21 +59,19 @@ public class BroadcastTest extends SystemTestBase {
 
     /* Set producer */
     final DbQueryScan scan1 = new DbQueryScan(testtable1Key, schema);
-    final GenericShuffleProducer bp =
-
-        new GenericShuffleProducer(scan1, broadcastID, new int[][] { { 0, 1 } },
-            new int[] { workerIDs[0], workerIDs[1] }, new FixValuePartitionFunction(0));
+    final GenericShuffleProducer bp = new GenericShuffleProducer(scan1, broadcastID, new int[] {
+        workerIDs[0], workerIDs[1] }, new BroadcastPartitionFunction(2));
 
     /* Set consumer */
-    final GenericShuffleConsumer bs =
-        new GenericShuffleConsumer(schema, broadcastID, new int[] { workerIDs[0], workerIDs[1] });
+    final GenericShuffleConsumer bs = new GenericShuffleConsumer(schema, broadcastID, new int[] {
+        workerIDs[0], workerIDs[1] });
 
     /* Set collect producer which will send data inner-joined */
     final DbQueryScan scan2 = new DbQueryScan(testtable2Key, schema);
 
     final ImmutableList<String> outputColumnNames = ImmutableList.of("id1", "name1", "id2", "name2");
-    final SymmetricHashJoin localjoin =
-        new SymmetricHashJoin(outputColumnNames, bs, scan2, new int[] { 0 }, new int[] { 0 });
+    final SymmetricHashJoin localjoin = new SymmetricHashJoin(outputColumnNames, bs, scan2, new int[] { 0 }, new int[] {
+        0 });
 
     final CollectProducer cp = new CollectProducer(localjoin, serverReceiveID, MASTER_ID);
 

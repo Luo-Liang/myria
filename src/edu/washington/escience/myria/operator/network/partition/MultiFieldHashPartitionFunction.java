@@ -5,7 +5,6 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 
@@ -27,34 +26,18 @@ public final class MultiFieldHashPartitionFunction extends PartitionFunction {
   private final int[] indexes;
 
   /**
-   * @param numPartition number of partitions
+   * @param numDestinations number of destinations.
    * @param indexes the indices used for partitioning.
    */
-  @JsonCreator
-  public MultiFieldHashPartitionFunction(@Nullable @JsonProperty("numPartitions") final Integer numPartition,
-      @JsonProperty(value = "indexes", required = true) final Integer[] indexes) {
-    super(numPartition);
+  public MultiFieldHashPartitionFunction(@Nullable @JsonProperty("numDestinations") final Integer numDestinations,
+      @JsonProperty(value = "indexes", required = true) final int[] indexes) {
+    super(numDestinations);
     Objects.requireNonNull(indexes, "indexes");
-    Preconditions.checkArgument(indexes.length > 1, "MultiFieldHash requires at least 2 fields to hash");
-    this.indexes = new int[indexes.length];
-    for (int i = 0; i < indexes.length; ++i) {
-      int index = Preconditions.checkNotNull(indexes[i], "MultiFieldHash field index %s cannot be null", i);
-      Preconditions.checkArgument(index >= 0, "MultiFieldHash field index %s cannot take negative value %s", i, index);
-      this.indexes[i] = index;
-    }
-  }
-
-  /**
-   * @param numPartition number of partitions
-   * @param indexes the indices used for partitioning.
-   */
-  public MultiFieldHashPartitionFunction(final Integer numPartition, final int[] indexes) {
-    super(numPartition);
     Preconditions.checkArgument(indexes.length > 1, "MultiFieldHash requires at least 2 fields to hash");
     this.indexes = indexes;
     for (int i = 0; i < indexes.length; ++i) {
-      int index = indexes[i];
-      Preconditions.checkArgument(index >= 0, "MultiFieldHash field index %s cannot take negative value %s", i, index);
+      Preconditions.checkArgument(indexes[i] >= 0, "MultiFieldHash field index %s cannot take negative value %s", i,
+          indexes[i]);
     }
   }
 
@@ -66,15 +49,11 @@ public final class MultiFieldHashPartitionFunction extends PartitionFunction {
   }
 
   @Override
-  public int[] partition(@Nonnull final TupleBatch tb) {
-    final int[] result = new int[tb.numTuples()];
-    for (int i = 0; i < result.length; i++) {
-      int p = HashUtils.hashSubRow(tb, indexes, i) % numPartition();
-      if (p < 0) {
-        p = p + numPartition();
-      }
-      result[i] = p;
+  public int[] distribute(@Nonnull final TupleBatch tb, final int row) {
+    int p = HashUtils.hashSubRow(tb, indexes, row) % numDestinations();
+    if (p < 0) {
+      p = p + numDestinations();
     }
-    return result;
+    return new int[] { p };
   }
 }

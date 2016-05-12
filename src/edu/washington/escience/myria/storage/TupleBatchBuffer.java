@@ -445,18 +445,14 @@ public class TupleBatchBuffer implements AppendableTable {
   }
 
   /**
-   * Add the specified {@link TupleBatch} to this buffer. The implementation is O(1) when possible, i.e. if the
-   * TupleBatch is full and this buffer is not building a partially-complete TupleBatch. Otherwise, it's O(N) in the
-   * size of the TupleBatch because it is a full copy.
+   * Add the tuples in {@link TupleBatch} to this buffer. The implementation is O(N) in the size of the TupleBatch
+   * because it is a full copy. It is not used by any code but good to keep for future in case if we want to squash
+   * several tuple batches to adjust the sizes.
    * 
    * @param tupleBatch the tuple data to be added to this buffer.
    */
   public void absorb(final TupleBatch tupleBatch) {
-    if (currentInProgressTuples == 0) {
-      appendTB(tupleBatch);
-    } else {
-      tupleBatch.compactInto(this);
-    }
+    tupleBatch.compactInto(this);
   }
 
   @Override

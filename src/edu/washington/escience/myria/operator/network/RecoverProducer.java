@@ -34,7 +34,7 @@ public final class RecoverProducer extends CollectProducer {
    * @param collectConsumerWorkerID destination worker the data goes.
    * @param oriProducer the original producer.
    * @param channelIndx the channel index that this operator is recovering for. *
-   * */
+   */
   public RecoverProducer(final Operator child, final ExchangePairID operatorID, final int collectConsumerWorkerID,
       final Producer oriProducer, final int channelIndx) {
     super(child, operatorID, collectConsumerWorkerID);
@@ -44,7 +44,7 @@ public final class RecoverProducer extends CollectProducer {
 
   @Override
   protected void childEOS() throws DbException {
-    writePartitionsIntoChannels(false, null);
+    distribute(null, null);
     Preconditions.checkArgument(getChild() instanceof TupleSource);
     if (!oriProducer.eos()) {
       StreamOutputChannel<TupleBatch> tmp = getChannels()[0];

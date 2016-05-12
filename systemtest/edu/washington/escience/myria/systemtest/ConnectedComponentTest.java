@@ -24,6 +24,7 @@ import edu.washington.escience.myria.api.encoding.QueryStatusEncoding.Status;
 import edu.washington.escience.myria.column.Column;
 import edu.washington.escience.myria.operator.DbQueryScan;
 import edu.washington.escience.myria.operator.IDBController;
+import edu.washington.escience.myria.operator.KeepAndSortOnMinValue;
 import edu.washington.escience.myria.operator.KeepMinValue;
 import edu.washington.escience.myria.operator.Operator;
 import edu.washington.escience.myria.operator.RootOperator;
@@ -132,9 +133,9 @@ public class ConnectedComponentTest extends SystemTestBase {
     final CollectProducer cp = new CollectProducer(agg, serverOpId, MASTER_ID);
     final GenericShuffleProducer sp3 = new GenericShuffleProducer(join, joinArrayId3, workerIDs, pf0);
     if (prioritized) {
-      sp3.setBackupBufferAsPrioritizedMin(new int[] { 0 }, new int[] { 1 });
+      sp3.setBackupBuffer(new KeepAndSortOnMinValue(new int[] { 0 }, new int[] { 1 }));
     } else {
-      sp3.setBackupBufferAsMin(new int[] { 0 }, new int[] { 1 });
+      sp3.setBackupBuffer(new KeepMinValue(new int[] { 0 }, new int[] { 1 }));
     }
 
     List<RootOperator> ret = new ArrayList<RootOperator>();

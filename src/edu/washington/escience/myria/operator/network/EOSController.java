@@ -33,7 +33,7 @@ public class EOSController extends Producer {
   private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(EOSController.class);
   /**
    * Recording the number of EOI received from each controlled {@link IDBController}.
-   * */
+   */
   private final int[][] numEOI;
   /**
    * 
@@ -42,11 +42,11 @@ public class EOSController extends Producer {
 
   /**
    * If the number of empty reports at a time stamp is the same as this value, the iteration is done.
-   * */
+   */
   private final int eosZeroColValue;
   /**
    * Mapping from workerID to index.
-   * */
+   */
   private final ImmutableMap<Integer, Integer> workerIdToIndex;
 
   // /**
@@ -61,9 +61,9 @@ public class EOSController extends Producer {
    * @param child The child are responsible for receiving EOI report from all controlled IDBControllers.
    * @param workerIDs the workers where the IDBController operators resides
    * @param idbOpIDs the IDB operatorIDs in each Worker
-   * */
+   */
   public EOSController(final UnionAll child, final ExchangePairID[] idbOpIDs, final int[] workerIDs) {
-    super(null, idbOpIDs, workerIDs, false);
+    super(null, idbOpIDs, workerIDs);
     if (child != null) {
       setChildren(new Operator[] { child });
     }
@@ -77,7 +77,6 @@ public class EOSController extends Producer {
       tmp.put(workerId, idx++);
     }
     workerIdToIndex = ImmutableMap.copyOf(tmp);
-
   }
 
   @Override
@@ -134,7 +133,7 @@ public class EOSController extends Producer {
         tmp++;
         zeroCol.set(numEOI[idbIdx][workerIdx], tmp);
         if (tmp == numExpecting) {
-          for (int j = 0; j < super.numChannels(); j++) {
+          for (int j = 0; j < super.getNumOfChannels(); j++) {
             super.channelEnds(j); // directly emit an EOS makes more sense.
           }
           if (LOGGER.isTraceEnabled()) {
@@ -150,13 +149,13 @@ public class EOSController extends Producer {
 
   /**
    * EOS report schema.
-   * */
+   */
   public static final Schema EOS_REPORT_SCHEMA = Schema.EMPTY_SCHEMA;
 
   // TODO add Root operator init and cleanup.
   /**
    * If the EOS messages are sent.
-   * */
+   */
   private volatile boolean isEOSSent = false;
 
   @Override

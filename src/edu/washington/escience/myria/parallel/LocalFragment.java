@@ -274,11 +274,10 @@ public final class LocalFragment {
    */
   private void collectDownChannels(final Operator currentOperator,
       final HashSet<StreamIOChannelID> outputExchangeChannels) {
-
     if (currentOperator instanceof Producer) {
       Producer p = (Producer) currentOperator;
-      StreamIOChannelID[] exCID = p.getOutputChannelIDs(ipcEntityID);
-      for (StreamIOChannelID element : exCID) {
+      p.setSelfOutputId(ipcEntityID);
+      for (StreamIOChannelID element : p.getOutputChannelIds()) {
         outputExchangeChannels.add(element);
       }
     } else if (currentOperator instanceof IDBController) {
@@ -808,7 +807,8 @@ public final class LocalFragment {
     if (op instanceof Producer) {
       addResourceReport(stats, timestamp, op, "numTuplesWritten", ((Producer) op).getNumTuplesWrittenToChannels(),
           subQueryId);
-      addResourceReport(stats, timestamp, op, "numTuplesInBuffers", ((Producer) op).getNumTuplesInBuffers(), subQueryId);
+      addResourceReport(stats, timestamp, op, "numTuplesInBuffers", ((Producer) op).getNumTuplesInBuffers(),
+          subQueryId);
     } else if (op instanceof IDBController) {
       addResourceReport(stats, timestamp, op, "numTuplesInState", ((IDBController) op).getStreamingState().numTuples(),
           subQueryId);

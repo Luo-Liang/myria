@@ -41,6 +41,7 @@ import edu.washington.escience.myria.api.encoding.plan.SubQueryEncoding;
 import edu.washington.escience.myria.io.DataSource;
 import edu.washington.escience.myria.io.EmptySource;
 import edu.washington.escience.myria.io.FileSource;
+import edu.washington.escience.myria.operator.network.partition.BroadcastPartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.RoundRobinPartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
@@ -96,8 +97,8 @@ public class JsonQuerySubmitTest extends SystemTestBase {
     String dataset = "Hello world,3242\n" + "goodbye world,321\n" + "pizza pizza,104";
     JsonAPIUtils.replace("localhost", masterDaemonPort, "public", "adhoc", "smallTable", dataset, "csv");
 
-    String fetchedDataset =
-        JsonAPIUtils.download("localhost", masterDaemonPort, "public", "adhoc", "smallTable", "csv");
+    String fetchedDataset = JsonAPIUtils.download("localhost", masterDaemonPort, "public", "adhoc", "smallTable",
+        "csv");
     assertTrue(fetchedDataset.contains("pizza pizza"));
 
     // Replace the dataset with all new contents
@@ -116,8 +117,8 @@ public class JsonQuerySubmitTest extends SystemTestBase {
     RelationKey key = RelationKey.of("public", "adhoc", "testIngest");
     Schema schema = Schema.of(ImmutableList.of(Type.INT_TYPE, Type.INT_TYPE), ImmutableList.of("x", "y"));
     Character delimiter = ' ';
-    HttpURLConnection conn =
-        JsonAPIUtils.ingestData("localhost", masterDaemonPort, ingest(key, schema, source, delimiter, null));
+    HttpURLConnection conn = JsonAPIUtils.ingestData("localhost", masterDaemonPort, ingest(key, schema, source,
+        delimiter, null));
     if (null != conn.getErrorStream()) {
       throw new IllegalStateException(getContents(conn));
     }
@@ -128,7 +129,7 @@ public class JsonQuerySubmitTest extends SystemTestBase {
     PartitionFunction pf = status.getHowPartitioned().getPf();
     /* not specified, should be RoundRobin. */
     assertTrue(pf instanceof RoundRobinPartitionFunction);
-    assertEquals(2, pf.numPartition());
+    assertEquals(2, pf.numDestinations());
     conn.disconnect();
     /* bad ingestion. */
     delimiter = ',';
@@ -140,16 +141,27 @@ public class JsonQuerySubmitTest extends SystemTestBase {
     /* hash-partitioned ingest. */
     delimiter = ' ';
     RelationKey keyP = RelationKey.of("public", "adhoc", "testIngestHashPartitioned");
-    conn =
-        JsonAPIUtils.ingestData("localhost", masterDaemonPort, ingest(keyP, schema, source, delimiter,
-            new SingleFieldHashPartitionFunction(null, 1)));
+    conn = JsonAPIUtils.ingestData("localhost", masterDaemonPort, ingest(keyP, schema, source, delimiter,
+        new SingleFieldHashPartitionFunction(null, 1)));
     assertEquals(conn.getResponseCode(), HttpURLConnection.HTTP_CREATED);
     status = getDatasetStatus(conn);
     pf = status.getHowPartitioned().getPf();
     /* specified, should be SingleField with index = 1. */
-    assertEquals(2, pf.numPartition());
+    assertEquals(2, pf.numDestinations());
     assertTrue(pf instanceof SingleFieldHashPartitionFunction);
     assertEquals(1, ((SingleFieldHashPartitionFunction) pf).getIndex());
+    conn.disconnect();
+
+    /* Broadcast. */
+    delimiter = ' ';
+    RelationKey keyB = RelationKey.of("public", "adhoc", "testBroadcastPartitioned");
+    conn = JsonAPIUtils.ingestData("localhost", masterDaemonPort, ingest(keyB, schema, source, delimiter,
+        new BroadcastPartitionFunction(2)));
+    assertEquals(conn.getResponseCode(), HttpURLConnection.HTTP_CREATED);
+    status = getDatasetStatus(conn);
+    pf = status.getHowPartitioned().getPf();
+    assertEquals(2, pf.numDestinations());
+    assertTrue(pf instanceof BroadcastPartitionFunction);
     conn.disconnect();
   }
 
@@ -177,7 +189,7 @@ public class JsonQuerySubmitTest extends SystemTestBase {
     assertEquals(HttpURLConnection.HTTP_CREATED, conn.getResponseCode());
     DatasetStatus datasetStatus = getDatasetStatus(conn);
     PartitionFunction pf = datasetStatus.getHowPartitioned().getPf();
-    assertEquals(2, pf.numPartition());
+    assertEquals(2, pf.numDestinations());
     assertTrue(pf instanceof SingleFieldHashPartitionFunction);
     assertEquals(0, ((SingleFieldHashPartitionFunction) pf).getIndex());
     conn.disconnect();
@@ -241,8 +253,8 @@ public class JsonQuerySubmitTest extends SystemTestBase {
       throw new IllegalStateException(getContents(conn));
     }
     assertEquals(HttpURLConnection.HTTP_CREATED, conn.getResponseCode());
-    assertEquals(QueryStatusEncoding.Status.SUCCESS, server.getQueryManager().getQueryStatus(
-        getDatasetStatus(conn).getQueryId()).status);
+    assertEquals(QueryStatusEncoding.Status.SUCCESS, server.getQueryManager().getQueryStatus(getDatasetStatus(conn)
+        .getQueryId()).status);
     conn.disconnect();
 
     File queryJson = new File("./jsonQueries/multiIDB_jwang/joinChain.json");
@@ -266,9 +278,8 @@ public class JsonQuerySubmitTest extends SystemTestBase {
     final int NUM_DUPLICATES = 2000;
     final int BYTES_TO_READ = 1024; // read 1 kb
 
-    URL url =
-        new URL(String.format("http://%s:%d/dataset/download_test?num_tb=%d&format=%s", "localhost", masterDaemonPort,
-            NUM_DUPLICATES, "json"));
+    URL url = new URL(String.format("http://%s:%d/dataset/download_test?num_tb=%d&format=%s", "localhost",
+        masterDaemonPort, NUM_DUPLICATES, "json"));
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.setDoOutput(true);
     conn.setRequestMethod("GET");

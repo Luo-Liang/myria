@@ -1,9 +1,8 @@
 package edu.washington.escience.myria.operator.network;
 
 import edu.washington.escience.myria.operator.Operator;
-import edu.washington.escience.myria.operator.network.partition.FixValuePartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.SinglePartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
-import edu.washington.escience.myria.storage.TupleBatch;
 
 /**
  * The producer part of the Collect Exchange operator.
@@ -13,9 +12,6 @@ import edu.washington.escience.myria.storage.TupleBatch;
  */
 public class CollectProducer extends GenericShuffleProducer {
 
-  /** A collector always has one partition, no replication, and exactly one outgoing channel of index 0. */
-  private static final int[][] COLLECTOR_PARTITION_TO_CHANNEL = new int[][] { { 0 } };
-
   /** Required for Java serialization. */
   private static final long serialVersionUID = 1L;
 
@@ -23,14 +19,8 @@ public class CollectProducer extends GenericShuffleProducer {
    * @param child the child who provides data for this producer to distribute.
    * @param operatorID destination operator the data goes
    * @param collectConsumerWorkerID destination worker the data goes.
-   * */
+   */
   public CollectProducer(final Operator child, final ExchangePairID operatorID, final int collectConsumerWorkerID) {
-    super(child, new ExchangePairID[] { operatorID }, COLLECTOR_PARTITION_TO_CHANNEL,
-        new int[] { collectConsumerWorkerID }, new FixValuePartitionFunction(0), true);
-  }
-
-  @Override
-  protected TupleBatch[] getTupleBatchPartitions(final TupleBatch tup) {
-    return new TupleBatch[] { tup };
+    super(child, operatorID, collectConsumerWorkerID, new SinglePartitionFunction());
   }
 }

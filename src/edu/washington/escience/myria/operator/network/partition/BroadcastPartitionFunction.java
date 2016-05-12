@@ -3,31 +3,34 @@ package edu.washington.escience.myria.operator.network.partition;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import edu.washington.escience.myria.storage.TupleBatch;
 
 /**
- * A partition function that simply sends one tuple to each output in turn.
- * 
- * 
+ * put all tuples into one partition.
  */
-public final class RoundRobinPartitionFunction extends PartitionFunction {
+public final class BroadcastPartitionFunction extends PartitionFunction {
 
   /** Required for Java serialization. */
   private static final long serialVersionUID = 1L;
 
+  /** Always returns all destinations. */
+  private int[] p = null;
+
   /**
-   * @param numDestinations the number of destinations.
+   * @param numDestinations number of destinations.
    */
-  @JsonCreator
-  public RoundRobinPartitionFunction(@Nullable @JsonProperty("numDestinations") final Integer numDestinations) {
+  public BroadcastPartitionFunction(@Nullable @JsonProperty("numDestinations") final Integer numDestinations) {
     super(numDestinations);
+    p = new int[numDestinations()];
+    for (int i = 0; i < numDestinations(); ++i) {
+      p[i] = i;
+    }
   }
 
   @Override
   public int[] distribute(@Nonnull final TupleBatch tb, final int row) {
-    return new int[] { row % numDestinations() };
+    return p;
   }
 }

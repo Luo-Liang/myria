@@ -15,65 +15,63 @@ import edu.washington.escience.myria.storage.TupleBatch;
 
 /**
  * The ShuffleProducer class uses an instance of the PartitionFunction class to decide which worker a tuple should be
- * routed to. Typically, the ShuffleProducer class invokes {@link partition(Tuple, Schema) partition} on every tuple it
- * generates.
+ * routed to.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
+    @Type(value = BroadcastPartitionFunction.class, name = "Broadcast"),
     @Type(value = RoundRobinPartitionFunction.class, name = "RoundRobin"),
+    @Type(value = SinglePartitionFunction.class, name = "OnePartition"),
     @Type(value = SingleFieldHashPartitionFunction.class, name = "SingleFieldHash"),
-    @Type(value = IdentityHashPartitionFunction.class, name = "IdentityHash"),
-    @Type(value = MultiFieldHashPartitionFunction.class, name = "MultiFieldHash"),
-    @Type(value = WholeTupleHashPartitionFunction.class, name = "WholeTupleHash") })
+    @Type(value = WorkerIdPartitionFunction.class, name = "IdentityHash"),
+    @Type(value = MFMDHashPartitionFunction.class, name = "MFMD"),
+    @Type(value = MultiFieldHashPartitionFunction.class, name = "MultiFieldHash") })
 public abstract class PartitionFunction implements Serializable {
 
   /** Required for Java serialization. */
   private static final long serialVersionUID = 1L;
 
   /**
-   * The number of partitions into which input tuples can be divided.
+   * The number of destinations. A tuple can be sent to multiple destinations with IDs ranging from 0 to
+   * numDestination-1.
    */
   @JsonProperty
-  private Integer numPartitions = null;
+  private Integer numDestinations = null;
 
   /**
-   * @param numPartitions the number of partitions into which input tuples can be divided. Note that this is a
-   *          {@link Integer} not an {@link int} so that it can properly handle <code>null</code> values, e.g., in JSON
-   *          deserialization.
+   * @param numDestinations see above. Note that this is a {@link Integer} not an {@link int} so that it can properly
+   *          handle <code>null</code> values, e.g., in JSON deserialization.
    */
-  public PartitionFunction(@Nullable final Integer numPartitions) {
-    Preconditions.checkArgument((numPartitions == null) || (numPartitions > 0),
-        "numPartitions argument must be null or > 0");
-    this.numPartitions = numPartitions;
+  public PartitionFunction(@Nullable final Integer numDestinations) {
+    Preconditions.checkArgument((numDestinations == null) || (numDestinations > 0),
+        "numDestinations argument must be null or > 0");
+    this.numDestinations = numDestinations;
   }
 
   /**
-   * @return the number of partitions.
+   * @return the number of destinations.
    */
-  public final int numPartition() {
-    Preconditions.checkState(numPartitions != null, "numPartitions has not been set");
-    return numPartitions;
+  public final int numDestinations() {
+    return numDestinations;
   }
 
   /**
-   * Given that the TupleBatches expose only the valid tuples, partition functions using TB.get** methods should be of
-   * little overhead comparing with direct Column access.
+   * Returns a list of destination IDs in [0, numDestinations) that the tuple should be sent to.
    * 
-   * @param data the data to be partitioned.
-   * 
-   * @return an int[] of length specified by <code>data.{@link TupleBatch#numTuples}</code>, specifying which partition
-   *         every tuple should be sent to.
+   * @param tb the tuple batch.
+   * @param row the row index of the tuple to be partitioned.
+   * @return a list of destination IDs that the tuple should go.
    * 
    */
-  public abstract int[] partition(@Nonnull final TupleBatch data);
+  public abstract int[] distribute(@Nonnull final TupleBatch tb, final int row);
 
   /**
-   * Set the number of output partitions.
+   * Set the number of output destinations.
    * 
-   * @param numPartitions the number of output partitions. Must be greater than 0.
+   * @param numDestinations the number of output destinations. Must be greater than 0.
    */
-  public final void setNumPartitions(final int numPartitions) {
-    Preconditions.checkArgument(numPartitions > 0, "numPartitions must be > 0");
-    this.numPartitions = numPartitions;
+  public final void setNumDestinations(final int numDestinations) {
+    Preconditions.checkArgument(numDestinations > 0, "numDestinations must be > 0");
+    this.numDestinations = numDestinations;
   }
 }

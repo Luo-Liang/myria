@@ -6,7 +6,7 @@ import java.io.Serializable;
  * 
  * ID of a stream I/O channel.
  * 
- * */
+ */
 public class StreamIOChannelID implements Comparable<StreamIOChannelID>, Serializable {
 
   /**
@@ -16,23 +16,23 @@ public class StreamIOChannelID implements Comparable<StreamIOChannelID>, Seriali
 
   /**
    * remote worker ID.
-   * */
-  private final int remoteID;
+   */
+  private int remoteID;
 
   /**
    * operator id.
-   * */
+   */
   private final long streamID;
 
   /**
    * used in toString.
-   * */
+   */
   private final String toStringValue;
 
   /**
    * @param streamID stream ID.
    * @param remoteID worker ID.
-   * */
+   */
   public StreamIOChannelID(final long streamID, final int remoteID) {
     this.remoteID = remoteID;
     this.streamID = streamID;
@@ -51,7 +51,7 @@ public class StreamIOChannelID implements Comparable<StreamIOChannelID>, Seriali
 
   /**
    * for generating hash code.
-   * */
+   */
   private static final int MAGIC_HASHCODE_BASE = 31;
 
   @Override
@@ -64,14 +64,21 @@ public class StreamIOChannelID implements Comparable<StreamIOChannelID>, Seriali
 
   /**
    * @return the remoteID of this channel.
-   * */
+   */
+  public final void setRemoteID(final int id) {
+    remoteID = id;
+  }
+
+  /**
+   * @return the remoteID of this channel.
+   */
   public final int getRemoteID() {
     return remoteID;
   }
 
   /**
    * @return the streamID of this channel.
-   * */
+   */
   public final long getStreamID() {
     return streamID;
   }

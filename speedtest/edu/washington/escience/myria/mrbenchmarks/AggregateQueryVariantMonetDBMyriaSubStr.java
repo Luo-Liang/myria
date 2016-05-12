@@ -20,11 +20,10 @@ import edu.washington.escience.myria.operator.network.CollectConsumer;
 import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
-import edu.washington.escience.myria.operator.network.LocalShuffleConsumer;
-import edu.washington.escience.myria.operator.network.LocalShuffleProducer;
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
+import edu.washington.escience.myria.parallel.ipc.IPCConnectionPool;
 import edu.washington.escience.myria.storage.TupleBatch;
 
 public class AggregateQueryVariantMonetDBMyriaSubStr implements QueryPlanGenerator {
@@ -37,10 +36,10 @@ public class AggregateQueryVariantMonetDBMyriaSubStr implements QueryPlanGenerat
   final ExchangePairID sendToMasterID = ExchangePairID.newID();
 
   @Override
-  public Map<Integer, RootOperator[]> getWorkerPlan(int[] allWorkers) throws Exception {
+  public Map<Integer, RootOperator[]> getWorkerPlan(final int[] allWorkers) throws Exception {
 
-    final DbQueryScan localScan =
-        new DbQueryScan("select sourceIPAddr, SUM(adRevenue) from UserVisits group by sourceIPAddr", outputSchema);
+    final DbQueryScan localScan = new DbQueryScan(
+        "select sourceIPAddr, SUM(adRevenue) from UserVisits group by sourceIPAddr", outputSchema);
 
     final int NUM_LOCAL_TASKS = 5;
 
@@ -52,31 +51,31 @@ public class AggregateQueryVariantMonetDBMyriaSubStr implements QueryPlanGenerat
     for (int i = 0; i < localShuffleIDs.length; i++) {
       localShuffleIDs[i] = ExchangePairID.newID();
     }
-    LocalShuffleProducer localsp = new LocalShuffleProducer(localScan, localShuffleIDs, pfLocal0);
+    GenericShuffleProducer localsp = new GenericShuffleProducer(localScan, localShuffleIDs,
+        IPCConnectionPool.SELF_IPC_ID, pfLocal0);
 
-    LocalShuffleConsumer[] lsc = new LocalShuffleConsumer[localShuffleIDs.length];
+    GenericShuffleConsumer[] lsc = new GenericShuffleConsumer[localShuffleIDs.length];
     final GenericShuffleProducer[] shuffleLocalGroupBys = new GenericShuffleProducer[lsc.length];
     final ExchangePairID shuffleLocalGroupByID = ExchangePairID.newID();
 
     for (int i = 0; i < lsc.length; i++) {
-      lsc[i] = new LocalShuffleConsumer(localsp.getSchema(), localShuffleIDs[i]);
+      lsc[i] = new GenericShuffleConsumer(localsp.getSchema(), localShuffleIDs[i], new int[] {
+          IPCConnectionPool.SELF_IPC_ID });
 
       SubStr ss = new SubStr(0, 1, 7);
       ss.setChildren(new Operator[] { lsc[i] });
 
-      final SingleGroupByAggregate localAgg =
-          new SingleGroupByAggregate(ss, 1, new AggregatorFactory[] { new SingleColumnAggregatorFactory(0,
-              AggregationOp.SUM) });
+      final SingleGroupByAggregate localAgg = new SingleGroupByAggregate(ss, 1, new AggregatorFactory[] {
+          new SingleColumnAggregatorFactory(0, AggregationOp.SUM) });
 
       shuffleLocalGroupBys[i] = new GenericShuffleProducer(localAgg, shuffleLocalGroupByID, allWorkers, pf0);
     }
 
-    final GenericShuffleConsumer sc =
-        new GenericShuffleConsumer(shuffleLocalGroupBys[0].getSchema(), shuffleLocalGroupByID, allWorkers);
+    final GenericShuffleConsumer sc = new GenericShuffleConsumer(shuffleLocalGroupBys[0].getSchema(),
+        shuffleLocalGroupByID, allWorkers);
 
-    final SingleGroupByAggregate agg =
-        new SingleGroupByAggregate(sc, 0, new AggregatorFactory[] { new SingleColumnAggregatorFactory(1,
-            AggregationOp.SUM) });
+    final SingleGroupByAggregate agg = new SingleGroupByAggregate(sc, 0, new AggregatorFactory[] {
+        new SingleColumnAggregatorFactory(1, AggregationOp.SUM) });
 
     final CollectProducer sendToMaster = new CollectProducer(agg, sendToMasterID, 0);
 
@@ -94,7 +93,7 @@ public class AggregateQueryVariantMonetDBMyriaSubStr implements QueryPlanGenerat
   }
 
   @Override
-  public SinkRoot getMasterPlan(int[] allWorkers, final LinkedBlockingQueue<TupleBatch> receivedTupleBatches) {
+  public SinkRoot getMasterPlan(final int[] allWorkers, final LinkedBlockingQueue<TupleBatch> receivedTupleBatches) {
     final CollectConsumer serverCollect = new CollectConsumer(outputSchema, sendToMasterID, allWorkers);
     SinkRoot serverPlan = new SinkRoot(serverCollect);
     return serverPlan;
