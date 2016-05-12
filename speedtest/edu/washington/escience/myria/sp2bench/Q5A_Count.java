@@ -25,7 +25,6 @@ import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
-import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 
@@ -50,7 +49,7 @@ public class Q5A_Count implements QueryPlanGenerator {
     final ExchangePairID forDupElimShuffleID = ExchangePairID.newID();
     final ExchangePairID collectCountID = ExchangePairID.newID();
 
-    final HashPartitionFunction pfOn0 = new HashPartitionFunction(allWorkers.length, 0);
+    final HashPartitionFunction pfOn0 = new HashPartitionFunction(0);
 
     final DbQueryScan allArticles = new DbQueryScan(
         "select t.subject from Triples t, Dictionary dtype, Dictionary darticle where t.predicate=dtype.id and t.object=darticle.id and darticle.val='bench:Article' and dtype.val='rdf:type';",
@@ -157,7 +156,7 @@ public class Q5A_Count implements QueryPlanGenerator {
     // schema: (articleProceedingAuthorID long, foafNameID long)
 
     final GenericShuffleProducer forDupElimShuffleP = new GenericShuffleProducer(finalColSelect, forDupElimShuffleID,
-        allWorkers, new HashPartitionFunction(allWorkers.length, new int[] { 0, 1 }));
+        allWorkers, new HashPartitionFunction(new int[] { 0, 1 }));
     final GenericShuffleConsumer forDupElimShuffleC = new GenericShuffleConsumer(forDupElimShuffleP.getSchema(),
         forDupElimShuffleID, allWorkers);
 

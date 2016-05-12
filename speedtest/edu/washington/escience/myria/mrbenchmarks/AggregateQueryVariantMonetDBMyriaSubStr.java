@@ -1,6 +1,8 @@
 package edu.washington.escience.myria.mrbenchmarks;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -20,8 +22,8 @@ import edu.washington.escience.myria.operator.network.CollectConsumer;
 import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
-import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.parallel.ipc.IPCConnectionPool;
 import edu.washington.escience.myria.storage.TupleBatch;
@@ -43,23 +45,23 @@ public class AggregateQueryVariantMonetDBMyriaSubStr implements QueryPlanGenerat
 
     final int NUM_LOCAL_TASKS = 5;
 
-    PartitionFunction pf0 = new HashPartitionFunction(allWorkers.length, 0);
+    PartitionFunction pf0 = new HashPartitionFunction(0);
 
-    PartitionFunction pfLocal0 = new HashPartitionFunction(NUM_LOCAL_TASKS, 0);
+    PartitionFunction pfLocal0 = new HashPartitionFunction(0);
 
-    ExchangePairID[] localShuffleIDs = new ExchangePairID[NUM_LOCAL_TASKS];
-    for (int i = 0; i < localShuffleIDs.length; i++) {
-      localShuffleIDs[i] = ExchangePairID.newID();
+    List<ExchangePairID> localShuffleIDs = new ArrayList<ExchangePairID>();
+    for (int i = 0; i < NUM_LOCAL_TASKS; i++) {
+      localShuffleIDs.add(ExchangePairID.newID());
     }
     GenericShuffleProducer localsp = new GenericShuffleProducer(localScan, localShuffleIDs,
         IPCConnectionPool.SELF_IPC_ID, pfLocal0);
 
-    GenericShuffleConsumer[] lsc = new GenericShuffleConsumer[localShuffleIDs.length];
+    GenericShuffleConsumer[] lsc = new GenericShuffleConsumer[localShuffleIDs.size()];
     final GenericShuffleProducer[] shuffleLocalGroupBys = new GenericShuffleProducer[lsc.length];
     final ExchangePairID shuffleLocalGroupByID = ExchangePairID.newID();
 
     for (int i = 0; i < lsc.length; i++) {
-      lsc[i] = new GenericShuffleConsumer(localsp.getSchema(), localShuffleIDs[i], new int[] {
+      lsc[i] = new GenericShuffleConsumer(localsp.getSchema(), localShuffleIDs.get(i), new int[] {
           IPCConnectionPool.SELF_IPC_ID });
 
       SubStr ss = new SubStr(0, 1, 7);

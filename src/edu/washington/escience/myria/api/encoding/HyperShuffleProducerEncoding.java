@@ -17,8 +17,8 @@ public class HyperShuffleProducerEncoding extends AbstractProducerEncoding<Gener
 
   @Override
   public GenericShuffleProducer construct(final ConstructArgs args) throws MyriaApiException {
-    return new GenericShuffleProducer(null, MyriaUtils.getSingleElement(getRealOperatorIds()), MyriaUtils
-        .integerSetToIntArray(args.getServer().getRandomWorkers(pf.numDestinations())), pf);
+    return new GenericShuffleProducer(null, getRealOperatorIds().get(0), MyriaUtils.integerSetToIntArray(args
+        .getServer().getRandomWorkers(pf.numDestinations())), pf);
     /* TODO: get a deterministic subset of workers if we need to remove redundant MFMD shuffle in RACO */
   }
 }

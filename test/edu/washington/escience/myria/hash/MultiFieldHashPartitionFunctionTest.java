@@ -30,8 +30,8 @@ public class MultiFieldHashPartitionFunctionTest {
 
   @Test
   public void testMultiFieldPartitionFunction() {
-    HashPartitionFunction multiFieldPartitionFunction = new HashPartitionFunction(NUM_PARTITIONS,
-        new int[] { 0, 1 });
+    HashPartitionFunction multiFieldPartitionFunction = new HashPartitionFunction(new int[] { 0, 1 });
+    multiFieldPartitionFunction.setNumDestinations(NUM_PARTITIONS);
     int numGroups = rand.nextInt(10) + 1;
     int tuplesPerGroup = rand.nextInt(10) + 1;
     TupleSource source = generateTupleBatchSource(numGroups, tuplesPerGroup);

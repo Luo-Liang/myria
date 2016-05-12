@@ -38,8 +38,8 @@ import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.LocalMultiwayConsumer;
 import edu.washington.escience.myria.operator.network.LocalMultiwayProducer;
-import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.storage.TupleBatchBuffer;
@@ -52,7 +52,8 @@ public class IterativeFailureTest extends SystemTestBase {
   private final int numTbl1Worker1 = 100;
   private final int numTbl1Worker2 = 200;
 
-  public TupleBatchBuffer getAJoinResult(TupleBatchBuffer startWith, TupleBatchBuffer multiWith, Schema schema) {
+  public TupleBatchBuffer getAJoinResult(final TupleBatchBuffer startWith, final TupleBatchBuffer multiWith,
+      final Schema schema) {
 
     final Iterator<List<? extends Column<?>>> iter1 = startWith.getAllAsRawColumn().iterator();
     boolean s[][] = new boolean[MaxID][MaxID];
@@ -107,18 +108,11 @@ public class IterativeFailureTest extends SystemTestBase {
     return result;
   }
 
-  public static ExchangePairID[] removeNull(final ExchangePairID[] old) {
-    int size = 0;
+  public static List<ExchangePairID> removeNull(final ExchangePairID[] old) {
+    List<ExchangePairID> result = new ArrayList<ExchangePairID>();
     for (ExchangePairID id : old) {
       if (id != null) {
-        size++;
-      }
-    }
-    ExchangePairID[] result = new ExchangePairID[size];
-    int idx = 0;
-    for (ExchangePairID id : old) {
-      if (id != null) {
-        result[idx++] = id;
+        result.add(id);
       }
     }
     return result;
@@ -162,8 +156,8 @@ public class IterativeFailureTest extends SystemTestBase {
       final ExchangePairID serverReceivingOpID, final int selfIDBID) throws DbException {
 
     final int numPartition = 2;
-    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
-    final PartitionFunction pf1 = new HashPartitionFunction(numPartition, 1);
+    final PartitionFunction pf0 = new HashPartitionFunction(0);
+    final PartitionFunction pf1 = new HashPartitionFunction(1);
 
     GenericShuffleConsumer sc1;
     if (isHead) {
@@ -171,7 +165,7 @@ public class IterativeFailureTest extends SystemTestBase {
       final DbQueryScan scan1 = new DbQueryScan(RelationKey.of("test", "test", "r"), tableSchema);
       final GenericShuffleProducer sp1 =
 
-      new GenericShuffleProducer(scan1, joinArrayID, new int[] { workerIDs[0], workerIDs[1] }, pf1);
+          new GenericShuffleProducer(scan1, joinArrayID, new int[] { workerIDs[0], workerIDs[1] }, pf1);
       sc1 = new GenericShuffleConsumer(tableSchema, joinArrayID, new int[] { workerIDs[0], workerIDs[1] });
       workerPlan.get(0).add(sp1);
       workerPlan.get(1).add(sp1);
@@ -182,25 +176,25 @@ public class IterativeFailureTest extends SystemTestBase {
     final ExchangePairID beforeIngress1 = ExchangePairID.newID();
     final GenericShuffleProducer sp2 =
 
-    new GenericShuffleProducer(scan2, beforeIngress1, new int[] { workerIDs[0], workerIDs[1] }, pf0);
-    final GenericShuffleConsumer sc2 =
-        new GenericShuffleConsumer(tableSchema, beforeIngress1, new int[] { workerIDs[0], workerIDs[1] });
+        new GenericShuffleProducer(scan2, beforeIngress1, new int[] { workerIDs[0], workerIDs[1] }, pf0);
+    final GenericShuffleConsumer sc2 = new GenericShuffleConsumer(tableSchema, beforeIngress1, new int[] {
+        workerIDs[0], workerIDs[1] });
     final ExchangePairID beforeIngress2 = ExchangePairID.newID();
     final GenericShuffleProducer sp3_worker1 =
 
-    new GenericShuffleProducer(null, beforeIngress2, new int[] { workerIDs[0], workerIDs[1] }, pf0);
-    final GenericShuffleProducer sp3_worker2 =
         new GenericShuffleProducer(null, beforeIngress2, new int[] { workerIDs[0], workerIDs[1] }, pf0);
-    final GenericShuffleConsumer sc3_worker1 =
-        new GenericShuffleConsumer(tableSchema, beforeIngress2, new int[] { workerIDs[0], workerIDs[1] });
-    final GenericShuffleConsumer sc3_worker2 =
-        new GenericShuffleConsumer(tableSchema, beforeIngress2, new int[] { workerIDs[0], workerIDs[1] });
+    final GenericShuffleProducer sp3_worker2 = new GenericShuffleProducer(null, beforeIngress2, new int[] {
+        workerIDs[0], workerIDs[1] }, pf0);
+    final GenericShuffleConsumer sc3_worker1 = new GenericShuffleConsumer(tableSchema, beforeIngress2, new int[] {
+        workerIDs[0], workerIDs[1] });
+    final GenericShuffleConsumer sc3_worker2 = new GenericShuffleConsumer(tableSchema, beforeIngress2, new int[] {
+        workerIDs[0], workerIDs[1] });
     final Consumer eosReceiver = new Consumer(Schema.EMPTY_SCHEMA, eosReceiverOpID, new int[] { workerIDs[0] });
 
-    final IDBController idbController_worker1 =
-        new IDBController(selfIDBID, eoiReceiverOpID, workerIDs[0], sc2, sc3_worker1, eosReceiver, new DupElim());
-    final IDBController idbController_worker2 =
-        new IDBController(selfIDBID, eoiReceiverOpID, workerIDs[0], sc2, sc3_worker2, eosReceiver, new DupElim());
+    final IDBController idbController_worker1 = new IDBController(selfIDBID, eoiReceiverOpID, workerIDs[0], sc2,
+        sc3_worker1, eosReceiver, new DupElim());
+    final IDBController idbController_worker2 = new IDBController(selfIDBID, eoiReceiverOpID, workerIDs[0], sc2,
+        sc3_worker2, eosReceiver, new DupElim());
 
     final ExchangePairID[] consumerIDs = new ExchangePairID[] { ExchangePairID.newID(), null, null };
     if (sendingOpID != null) {
@@ -209,10 +203,10 @@ public class IterativeFailureTest extends SystemTestBase {
     if (serverReceivingOpID != null) {
       consumerIDs[2] = ExchangePairID.newID();
     }
-    final LocalMultiwayProducer multiProducer_worker1 =
-        new LocalMultiwayProducer(idbController_worker1, removeNull(consumerIDs));
-    final LocalMultiwayProducer multiProducer_worker2 =
-        new LocalMultiwayProducer(idbController_worker2, removeNull(consumerIDs));
+    final LocalMultiwayProducer multiProducer_worker1 = new LocalMultiwayProducer(idbController_worker1, removeNull(
+        consumerIDs));
+    final LocalMultiwayProducer multiProducer_worker2 = new LocalMultiwayProducer(idbController_worker2, removeNull(
+        consumerIDs));
     final LocalMultiwayConsumer send2join_worker1 = new LocalMultiwayConsumer(tableSchema, consumerIDs[0]);
     final LocalMultiwayConsumer send2join_worker2 = new LocalMultiwayConsumer(tableSchema, consumerIDs[0]);
     LocalMultiwayConsumer send2others_worker1 = null;
@@ -227,12 +221,10 @@ public class IterativeFailureTest extends SystemTestBase {
       send2server_worker1 = new LocalMultiwayConsumer(tableSchema, consumerIDs[2]);
       send2server_worker2 = new LocalMultiwayConsumer(tableSchema, consumerIDs[2]);
     }
-    final SymmetricHashJoin join_worker1 =
-        new SymmetricHashJoin(sc1, send2join_worker1, new int[] { 1 }, new int[] { 0 }, new int[] { 0 },
-            new int[] { 1 });
-    final SymmetricHashJoin join_worker2 =
-        new SymmetricHashJoin(sc1, send2join_worker2, new int[] { 1 }, new int[] { 0 }, new int[] { 0 },
-            new int[] { 1 });
+    final SymmetricHashJoin join_worker1 = new SymmetricHashJoin(sc1, send2join_worker1, new int[] { 1 }, new int[] {
+        0 }, new int[] { 0 }, new int[] { 1 });
+    final SymmetricHashJoin join_worker2 = new SymmetricHashJoin(sc1, send2join_worker2, new int[] { 1 }, new int[] {
+        0 }, new int[] { 0 }, new int[] { 1 });
     sp3_worker1.setChildren(new Operator[] { join_worker1 });
     sp3_worker2.setChildren(new Operator[] { join_worker2 });
 
@@ -249,9 +241,9 @@ public class IterativeFailureTest extends SystemTestBase {
 
       final GenericShuffleProducer sp_others_worker1 =
 
-      new GenericShuffleProducer(send2others_worker1, sendingOpID, new int[] { workerIDs[0], workerIDs[1] }, pf1);
-      final GenericShuffleProducer sp_others_worker2 =
-          new GenericShuffleProducer(send2others_worker2, sendingOpID, new int[] { workerIDs[0], workerIDs[1] }, pf1);
+          new GenericShuffleProducer(send2others_worker1, sendingOpID, new int[] { workerIDs[0], workerIDs[1] }, pf1);
+      final GenericShuffleProducer sp_others_worker2 = new GenericShuffleProducer(send2others_worker2, sendingOpID,
+          new int[] { workerIDs[0], workerIDs[1] }, pf1);
       workerPlan.get(0).add(sp_others_worker1);
       workerPlan.get(1).add(sp_others_worker2);
     }
@@ -297,9 +289,8 @@ public class IterativeFailureTest extends SystemTestBase {
     final Consumer eoiReceiver2 = new Consumer(IDBController.EOI_REPORT_SCHEMA, eoiReceiverOpID2, workerIDs);
     final Consumer eoiReceiver3 = new Consumer(IDBController.EOI_REPORT_SCHEMA, eoiReceiverOpID3, workerIDs);
     final UnionAll unionAll = new UnionAll(new Operator[] { eoiReceiver1, eoiReceiver2, eoiReceiver3 });
-    final EOSController eosController =
-        new EOSController(unionAll, new ExchangePairID[] {
-            eosReceiverOpID_idb1, eosReceiverOpID_idb2, eosReceiverOpID_idb3 }, workerIDs);
+    final EOSController eosController = new EOSController(unionAll, ImmutableList.of(eosReceiverOpID_idb1,
+        eosReceiverOpID_idb2, eosReceiverOpID_idb3), workerIDs);
 
     for (RootOperator worker0Root : workerPlan.get(0)) {
       // Inject failure operators into each root of worker 0
@@ -336,8 +327,8 @@ public class IterativeFailureTest extends SystemTestBase {
 
   }
 
-  public TupleBatchBuffer getCircularJoinResult(TupleBatchBuffer a, TupleBatchBuffer b, TupleBatchBuffer c,
-      Schema schema) {
+  public TupleBatchBuffer getCircularJoinResult(final TupleBatchBuffer a, final TupleBatchBuffer b,
+      final TupleBatchBuffer c, final Schema schema) {
 
     final Iterator<List<? extends Column<?>>> iter1 = a.getAllAsRawColumn().iterator();
     boolean s1[][] = new boolean[MaxID][MaxID];
@@ -451,9 +442,8 @@ public class IterativeFailureTest extends SystemTestBase {
     final Consumer eoiReceiver2 = new Consumer(IDBController.EOI_REPORT_SCHEMA, eoiReceiverOpID2, workerIDs);
     final Consumer eoiReceiver3 = new Consumer(IDBController.EOI_REPORT_SCHEMA, eoiReceiverOpID3, workerIDs);
     final UnionAll unionAll = new UnionAll(new Operator[] { eoiReceiver1, eoiReceiver2, eoiReceiver3 });
-    final EOSController eosController =
-        new EOSController(unionAll, new ExchangePairID[] {
-            eosReceiverOpID_idb1, eosReceiverOpID_idb2, eosReceiverOpID_idb3 }, workerIDs);
+    final EOSController eosController = new EOSController(unionAll, ImmutableList.of(eosReceiverOpID_idb1,
+        eosReceiverOpID_idb2, eosReceiverOpID_idb3), workerIDs);
     workerPlan.get(0).add(eosController);
 
     HashMap<Integer, RootOperator[]> workerPlans = new HashMap<Integer, RootOperator[]>();
@@ -524,9 +514,8 @@ public class IterativeFailureTest extends SystemTestBase {
     final Consumer eoiReceiver2 = new Consumer(IDBController.EOI_REPORT_SCHEMA, eoiReceiverOpID2, workerIDs);
     final Consumer eoiReceiver3 = new Consumer(IDBController.EOI_REPORT_SCHEMA, eoiReceiverOpID3, workerIDs);
     final UnionAll unionAll = new UnionAll(new Operator[] { eoiReceiver1, eoiReceiver2, eoiReceiver3 });
-    final EOSController eosController =
-        new EOSController(unionAll, new ExchangePairID[] {
-            eosReceiverOpID_idb1, eosReceiverOpID_idb2, eosReceiverOpID_idb3 }, workerIDs);
+    final EOSController eosController = new EOSController(unionAll, ImmutableList.of(eosReceiverOpID_idb1,
+        eosReceiverOpID_idb2, eosReceiverOpID_idb3), workerIDs);
     workerPlan.get(0).add(eosController);
 
     for (RootOperator worker0Root : workerPlan.get(1)) {
@@ -602,9 +591,8 @@ public class IterativeFailureTest extends SystemTestBase {
     final Consumer eoiReceiver2 = new Consumer(IDBController.EOI_REPORT_SCHEMA, eoiReceiverOpID2, workerIDs);
     final Consumer eoiReceiver3 = new Consumer(IDBController.EOI_REPORT_SCHEMA, eoiReceiverOpID3, workerIDs);
     final UnionAll unionAll = new UnionAll(new Operator[] { eoiReceiver1, eoiReceiver2, eoiReceiver3 });
-    final EOSController eosController =
-        new EOSController(unionAll, new ExchangePairID[] {
-            eosReceiverOpID_idb1, eosReceiverOpID_idb2, eosReceiverOpID_idb3 }, workerIDs);
+    final EOSController eosController = new EOSController(unionAll, ImmutableList.of(eosReceiverOpID_idb1,
+        eosReceiverOpID_idb2, eosReceiverOpID_idb3), workerIDs);
     workerPlan.get(0).add(eosController);
 
     HashMap<Integer, RootOperator[]> workerPlans = new HashMap<Integer, RootOperator[]>();

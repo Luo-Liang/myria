@@ -31,7 +31,8 @@ public class SerializationTests {
     PartitionFunction deserialized;
 
     /* Single field hash */
-    pf = new HashPartitionFunction(5, 3);
+    pf = new HashPartitionFunction(3);
+    pf.setNumDestinations(5);
     serialized = mapper.writeValueAsString(pf);
     deserialized = reader.readValue(serialized);
     assertEquals(pf.getClass(), deserialized.getClass());
@@ -41,7 +42,8 @@ public class SerializationTests {
 
     /* Multi-field hash */
     int[] multiFieldIndex = new int[] { 3, 4, 2 };
-    pf = new HashPartitionFunction(5, multiFieldIndex);
+    pf = new HashPartitionFunction(multiFieldIndex);
+    pf.setNumDestinations(5);
     serialized = mapper.writeValueAsString(pf);
     deserialized = reader.readValue(serialized);
     assertEquals(pf.getClass(), deserialized.getClass());
@@ -50,7 +52,8 @@ public class SerializationTests {
     assertArrayEquals(multiFieldIndex, pfMFH.getIndexes());
 
     /* RoundRobin */
-    pf = new RoundRobinPartitionFunction(5);
+    pf = new RoundRobinPartitionFunction();
+    pf.setNumDestinations(5);
     serialized = mapper.writeValueAsString(pf);
     deserialized = reader.readValue(serialized);
     assertEquals(pf.getClass(), deserialized.getClass());
@@ -66,7 +69,7 @@ public class SerializationTests {
     PartitionFunction deserialized;
 
     /* Single field hash, as one representative */
-    pf = new HashPartitionFunction(null, 3);
+    pf = new HashPartitionFunction(3);
     serialized = mapper.writeValueAsString(pf);
     deserialized = reader.readValue(serialized);
     assertEquals(pf.getClass(), deserialized.getClass());

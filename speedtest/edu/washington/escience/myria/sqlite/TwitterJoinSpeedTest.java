@@ -33,8 +33,8 @@ import edu.washington.escience.myria.operator.network.CollectConsumer;
 import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
-import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.systemtest.SystemTestBase;
@@ -87,11 +87,11 @@ public class TwitterJoinSpeedTest extends SystemTestBase {
      */
     final int numPartition = 2;
     // PF0 : follower (field 0 of the tuple)
-    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
+    final PartitionFunction pf0 = new HashPartitionFunction(0);
     final ExchangePairID arrayID1 = ExchangePairID.newID();
     final GenericShuffleProducer sp1 = new GenericShuffleProducer(scan1, arrayID1, workerIDs, pf0);
     // PF1 : followee (field 1 of the tuple)
-    final PartitionFunction pf1 = new HashPartitionFunction(numPartition, 1);
+    final PartitionFunction pf1 = new HashPartitionFunction(1);
     final ExchangePairID arrayID2 = ExchangePairID.newID();
     final GenericShuffleProducer sp2 = new GenericShuffleProducer(scan2, arrayID2, workerIDs, pf1);
 
@@ -101,8 +101,8 @@ public class TwitterJoinSpeedTest extends SystemTestBase {
     // SC2: receive based on follower (PF0, so SP1 and arrayID1)
     final GenericShuffleConsumer sc2 = new GenericShuffleConsumer(sp1.getSchema(), arrayID1, workerIDs);
     // Join on SC1.followee=SC2.follower
-    final SymmetricHashJoin localProjJoin =
-        new SymmetricHashJoin(sc1, sc2, new int[] { 1 }, new int[] { 0 }, new int[] { 0 }, new int[] { 1 });
+    final SymmetricHashJoin localProjJoin = new SymmetricHashJoin(sc1, sc2, new int[] { 1 }, new int[] { 0 },
+        new int[] { 0 }, new int[] { 1 });
     /* Now reshuffle the results to partition based on the new followee, so that we can dupelim. */
     final ExchangePairID arrayID0 = ExchangePairID.newID();
     final GenericShuffleProducer sp0 = new GenericShuffleProducer(localProjJoin, arrayID0, workerIDs, pf0);
@@ -152,11 +152,11 @@ public class TwitterJoinSpeedTest extends SystemTestBase {
      */
     final int numPartition = 2;
     // PF0 : follower (field 0 of the tuple)
-    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
+    final PartitionFunction pf0 = new HashPartitionFunction(0);
     final ExchangePairID arrayID1 = ExchangePairID.newID();
     final GenericShuffleProducer sp1 = new GenericShuffleProducer(scan1, arrayID1, workerIDs, pf0);
     // PF1 : followee (field 1 of the tuple)
-    final PartitionFunction pf1 = new HashPartitionFunction(numPartition, 1);
+    final PartitionFunction pf1 = new HashPartitionFunction(1);
     final ExchangePairID arrayID2 = ExchangePairID.newID();
     final GenericShuffleProducer sp2 = new GenericShuffleProducer(scan2, arrayID2, workerIDs, pf1);
 
@@ -214,11 +214,11 @@ public class TwitterJoinSpeedTest extends SystemTestBase {
      */
     final int numPartition = 2;
     // PF0 : follower (field 0 of the tuple)
-    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
+    final PartitionFunction pf0 = new HashPartitionFunction(0);
     final ExchangePairID arrayID1 = ExchangePairID.newID();
     final GenericShuffleProducer sp1 = new GenericShuffleProducer(scan1, arrayID1, workerIDs, pf0);
     // PF1 : followee (field 1 of the tuple)
-    final PartitionFunction pf1 = new HashPartitionFunction(numPartition, 1);
+    final PartitionFunction pf1 = new HashPartitionFunction(1);
     final ExchangePairID arrayID2 = ExchangePairID.newID();
     final GenericShuffleProducer sp2 = new GenericShuffleProducer(scan2, arrayID2, workerIDs, pf1);
 
@@ -228,8 +228,8 @@ public class TwitterJoinSpeedTest extends SystemTestBase {
     // SC2: receive based on follower (PF0, so SP1 and arrayID1)
     final GenericShuffleConsumer sc2 = new GenericShuffleConsumer(sp1.getSchema(), arrayID1, workerIDs);
     // Join on SC1.followee=SC2.follower
-    final SymmetricHashJoin localProjJoin =
-        new SymmetricHashJoin(sc1, sc2, new int[] { 1 }, new int[] { 0 }, new int[] { 0 }, new int[] { 1 });
+    final SymmetricHashJoin localProjJoin = new SymmetricHashJoin(sc1, sc2, new int[] { 1 }, new int[] { 0 },
+        new int[] { 0 }, new int[] { 1 });
     /* Now reshuffle the results to partition based on the new followee, so that we can dupelim. */
     final ExchangePairID arrayID0 = ExchangePairID.newID();
     final GenericShuffleProducer sp0 = new GenericShuffleProducer(localProjJoin, arrayID0, workerIDs, pf0);

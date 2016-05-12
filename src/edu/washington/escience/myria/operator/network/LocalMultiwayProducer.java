@@ -1,5 +1,7 @@
 package edu.washington.escience.myria.operator.network;
 
+import java.util.List;
+
 import edu.washington.escience.myria.operator.Operator;
 import edu.washington.escience.myria.operator.network.partition.BroadcastPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
@@ -20,8 +22,8 @@ public final class LocalMultiwayProducer extends GenericShuffleProducer {
    * @param child the child who provides data for this producer to distribute.
    * @param operatorIDs destination operators the data goes
    */
-  public LocalMultiwayProducer(final Operator child, final ExchangePairID[] operatorIDs) {
-    super(child, operatorIDs, IPCConnectionPool.SELF_IPC_ID, new BroadcastPartitionFunction(operatorIDs.length));
+  public LocalMultiwayProducer(final Operator child, final List<ExchangePairID> operatorIDs) {
+    super(child, operatorIDs, IPCConnectionPool.SELF_IPC_ID, new BroadcastPartitionFunction());
   }
 
 }

@@ -59,8 +59,8 @@ import edu.washington.escience.myria.operator.network.CollectConsumer;
 import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
-import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.parallel.Query;
 import edu.washington.escience.myria.parallel.QueryFuture;
@@ -82,7 +82,7 @@ public class SequenceTest extends SystemTestBase {
     TupleSource source = new TupleSource(TestUtils.range(numVals).getAll());
     Schema testSchema = source.getSchema();
     RelationKey storage = RelationKey.of("test", "testi", "step1");
-    PartitionFunction pf = new HashPartitionFunction(workerIDs.length, 0);
+    PartitionFunction pf = new HashPartitionFunction(0);
 
     QueryPlan first = TestUtils.insertRelation(source, storage, pf, workerIDs);
 
@@ -132,9 +132,8 @@ public class SequenceTest extends SystemTestBase {
     RelationKey storage = RelationKey.of("test", "testNestedSequenceBug", "data");
 
     ExchangePairID shuffleId = ExchangePairID.newID();
-    final GenericShuffleProducer sp =
-        new GenericShuffleProducer(source, shuffleId, workerIDs, new HashPartitionFunction(workerIDs.length,
-            0));
+    final GenericShuffleProducer sp = new GenericShuffleProducer(source, shuffleId, workerIDs,
+        new HashPartitionFunction(0));
 
     final GenericShuffleConsumer cc = new GenericShuffleConsumer(testSchema, shuffleId, workerIDs);
     final DbInsert insert = new DbInsert(cc, storage, true);
@@ -198,8 +197,8 @@ public class SequenceTest extends SystemTestBase {
 
     /* Second task: crash just the first worker. */
     workerPlans = new HashMap<>();
-    workerPlans.put(workerIDs[0], new SubQueryPlan(new RootOperator[] { new SinkRoot(new InitFailureInjector(
-        new EOSSource())) }));
+    workerPlans.put(workerIDs[0], new SubQueryPlan(new RootOperator[] {
+        new SinkRoot(new InitFailureInjector(new EOSSource())) }));
     QueryPlan second = new SubQuery(serverPlan, workerPlans);
 
     /* Combine first and second into two queries, one after the other. */
@@ -317,9 +316,8 @@ public class SequenceTest extends SystemTestBase {
     assertEquals(status.message, Status.SUCCESS, status.status);
     assertEquals(1, server.getDatasetStatus(resultKey).getNumTuples());
 
-    String ret =
-        JsonAPIUtils.download("localhost", masterDaemonPort, resultKey.getUserName(), resultKey.getProgramName(),
-            resultKey.getRelationName(), "csv");
+    String ret = JsonAPIUtils.download("localhost", masterDaemonPort, resultKey.getUserName(), resultKey
+        .getProgramName(), resultKey.getRelationName(), "csv");
     assertEquals("sum_value\r\n9\r\n", ret);
   }
 
@@ -335,9 +333,8 @@ public class SequenceTest extends SystemTestBase {
     for (int i = 0; i < numCopies; ++i) {
       TupleSource source = new TupleSource(data.getAll());
       ExchangePairID shuffleId = ExchangePairID.newID();
-      final GenericShuffleProducer sp =
-          new GenericShuffleProducer(source, shuffleId, workerIDs, new HashPartitionFunction(
-              workerIDs.length, 0));
+      final GenericShuffleProducer sp = new GenericShuffleProducer(source, shuffleId, workerIDs,
+          new HashPartitionFunction(0));
 
       final GenericShuffleConsumer cc = new GenericShuffleConsumer(schema, shuffleId, workerIDs);
 

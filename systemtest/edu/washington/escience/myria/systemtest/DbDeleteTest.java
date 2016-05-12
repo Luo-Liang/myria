@@ -112,6 +112,6 @@ public class DbDeleteTest extends SystemTestBase {
     relationKey = RelationKey.of("public", "adhoc", "testIngest");
     relationSchema = Schema.ofFields("x", Type.INT_TYPE, "y", Type.INT_TYPE);
     JsonAPIUtils.ingestData("localhost", masterDaemonPort, ingest(relationKey, relationSchema, relationSource, ' ',
-        new RoundRobinPartitionFunction(workerIDs.length)));
+        new RoundRobinPartitionFunction()));
   }
 }

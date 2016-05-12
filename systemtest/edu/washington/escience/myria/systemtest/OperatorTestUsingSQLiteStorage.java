@@ -43,21 +43,21 @@ public class OperatorTestUsingSQLiteStorage extends SystemTestBase {
     final ExchangePairID serverReceiveID = ExchangePairID.newID();
     final ExchangePairID table1ShuffleID = ExchangePairID.newID();
     final ExchangePairID table2ShuffleID = ExchangePairID.newID();
-    final HashPartitionFunction pf = new HashPartitionFunction(2, 0);
+    final HashPartitionFunction pf = new HashPartitionFunction(0);
 
     final DbQueryScan scan1 = new DbQueryScan(JOIN_TEST_TABLE_1, JOIN_INPUT_SCHEMA);
     final DbQueryScan scan2 = new DbQueryScan(JOIN_TEST_TABLE_2, JOIN_INPUT_SCHEMA);
 
     final GenericShuffleProducer sp1 =
 
-    new GenericShuffleProducer(scan1, table1ShuffleID, new int[] { workerIDs[0], workerIDs[1] }, pf);
-    final GenericShuffleConsumer sc1 =
-        new GenericShuffleConsumer(sp1.getSchema(), table1ShuffleID, new int[] { workerIDs[0], workerIDs[1] });
+        new GenericShuffleProducer(scan1, table1ShuffleID, new int[] { workerIDs[0], workerIDs[1] }, pf);
+    final GenericShuffleConsumer sc1 = new GenericShuffleConsumer(sp1.getSchema(), table1ShuffleID, new int[] {
+        workerIDs[0], workerIDs[1] });
 
-    final GenericShuffleProducer sp2 =
-        new GenericShuffleProducer(scan2, table2ShuffleID, new int[] { workerIDs[0], workerIDs[1] }, pf);
-    final GenericShuffleConsumer sc2 =
-        new GenericShuffleConsumer(sp2.getSchema(), table2ShuffleID, new int[] { workerIDs[0], workerIDs[1] });
+    final GenericShuffleProducer sp2 = new GenericShuffleProducer(scan2, table2ShuffleID, new int[] {
+        workerIDs[0], workerIDs[1] }, pf);
+    final GenericShuffleConsumer sc2 = new GenericShuffleConsumer(sp2.getSchema(), table2ShuffleID, new int[] {
+        workerIDs[0], workerIDs[1] });
 
     final RightHashCountingJoin localjoin = new RightHashCountingJoin(sc1, sc2, new int[] { 0 }, new int[] { 0 });
 
@@ -66,8 +66,8 @@ public class OperatorTestUsingSQLiteStorage extends SystemTestBase {
     workerPlans.put(workerIDs[0], new RootOperator[] { sp1, sp2, cp1 });
     workerPlans.put(workerIDs[1], new RootOperator[] { sp1, sp2, cp1 });
 
-    final CollectConsumer serverCollect =
-        new CollectConsumer(cp1.getSchema(), serverReceiveID, new int[] { workerIDs[0], workerIDs[1] });
+    final CollectConsumer serverCollect = new CollectConsumer(cp1.getSchema(), serverReceiveID, new int[] {
+        workerIDs[0], workerIDs[1] });
     final LinkedBlockingQueue<TupleBatch> receivedTupleBatches = new LinkedBlockingQueue<TupleBatch>();
     final TBQueueExporter queueStore = new TBQueueExporter(receivedTupleBatches, serverCollect);
     SinkRoot serverPlan = new SinkRoot(queueStore);

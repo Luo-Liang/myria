@@ -3,7 +3,6 @@ package edu.washington.escience.myria.operator.network.partition;
 import java.util.Objects;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
@@ -30,13 +29,11 @@ public final class HashPartitionFunction extends PartitionFunction {
   private int seedIndex = 0;
 
   /**
-   * @param numDestinations number of destinations.
    * @param indexes the column indices used for partitioning.
    * @param seedIndex the index of the chosen hashcode
    */
-  public HashPartitionFunction(@Nullable @JsonProperty("numDestinations") final Integer numDestinations,
-      @Nonnull @JsonProperty(value = "indexes") final int[] indexes) {
-    super(numDestinations);
+  public HashPartitionFunction(@Nonnull @JsonProperty(value = "indexes") final int[] indexes) {
+    super();
     Objects.requireNonNull(indexes, "indexes");
     Preconditions.checkArgument(indexes.length > 0, "hash function requires at least 1 field to hash");
     this.indexes = indexes;
@@ -57,8 +54,8 @@ public final class HashPartitionFunction extends PartitionFunction {
    * @param numDestinations number of destinations.
    * @param index the column index used for partitioning.
    */
-  public HashPartitionFunction(final Integer numDestinations, final int index) {
-    this(numDestinations, new int[] { index });
+  public HashPartitionFunction(final int index) {
+    this(new int[] { index });
   }
 
   /**

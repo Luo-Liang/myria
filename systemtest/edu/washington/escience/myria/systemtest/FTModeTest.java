@@ -46,8 +46,8 @@ import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.LocalMultiwayConsumer;
 import edu.washington.escience.myria.operator.network.LocalMultiwayProducer;
-import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.parallel.Query;
 import edu.washington.escience.myria.parallel.SubQueryPlan;
@@ -161,8 +161,8 @@ public class FTModeTest extends SystemTestBase {
       final ExchangePairID serverReceivingOpID, final int selfIDBID, final String ftMode) throws DbException {
 
     final int numPartition = 2;
-    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
-    final PartitionFunction pf1 = new HashPartitionFunction(numPartition, 1);
+    final PartitionFunction pf0 = new HashPartitionFunction(0);
+    final PartitionFunction pf1 = new HashPartitionFunction(1);
 
     GenericShuffleConsumer sc1;
     if (isHead) {
@@ -196,11 +196,11 @@ public class FTModeTest extends SystemTestBase {
     final Consumer eosReceiver = new Consumer(Schema.EMPTY_SCHEMA, eosReceiverOpID, new int[] { workerIDs[0] });
     eosReceiver.setOpName("eosReceiver_" + initName);
 
-    final IDBController idbController_worker1 =
-        new IDBController(selfIDBID, eoiReceiverOpID, workerIDs[0], sc2, sc3_worker1, eosReceiver, new DupElim());
+    final IDBController idbController_worker1 = new IDBController(selfIDBID, eoiReceiverOpID, workerIDs[0], sc2,
+        sc3_worker1, eosReceiver, new DupElim());
     idbController_worker1.setOpName("idbController_worker1_" + initName);
-    final IDBController idbController_worker2 =
-        new IDBController(selfIDBID, eoiReceiverOpID, workerIDs[0], sc2, sc3_worker2, eosReceiver, new DupElim());
+    final IDBController idbController_worker2 = new IDBController(selfIDBID, eoiReceiverOpID, workerIDs[0], sc2,
+        sc3_worker2, eosReceiver, new DupElim());
     idbController_worker2.setOpName("idbController_worker2_" + initName);
 
     final ExchangePairID[] consumerIDs = new ExchangePairID[] { ExchangePairID.newID(), null, null };
@@ -210,11 +210,11 @@ public class FTModeTest extends SystemTestBase {
     if (serverReceivingOpID != null) {
       consumerIDs[2] = ExchangePairID.newID();
     }
-    final LocalMultiwayProducer multiProducer_worker1 =
-        new LocalMultiwayProducer(idbController_worker1, removeNull(consumerIDs));
+    final LocalMultiwayProducer multiProducer_worker1 = new LocalMultiwayProducer(idbController_worker1, removeNull(
+        consumerIDs));
     multiProducer_worker1.setOpName("mp_worker1_" + initName);
-    final LocalMultiwayProducer multiProducer_worker2 =
-        new LocalMultiwayProducer(idbController_worker2, removeNull(consumerIDs));
+    final LocalMultiwayProducer multiProducer_worker2 = new LocalMultiwayProducer(idbController_worker2, removeNull(
+        consumerIDs));
     multiProducer_worker2.setOpName("mp_worker2_" + initName);
     final LocalMultiwayConsumer send2join_worker1 = new LocalMultiwayConsumer(tableSchema, consumerIDs[0]);
     send2join_worker1.setOpName("send2join_worker1_" + initName);
@@ -236,13 +236,11 @@ public class FTModeTest extends SystemTestBase {
       send2server_worker2 = new LocalMultiwayConsumer(tableSchema, consumerIDs[2]);
       send2server_worker2.setOpName("send2server_worker2_" + initName);
     }
-    final SymmetricHashJoin join_worker1 =
-        new SymmetricHashJoin(sc1, send2join_worker1, new int[] { 1 }, new int[] { 0 }, new int[] { 0 },
-            new int[] { 1 });
+    final SymmetricHashJoin join_worker1 = new SymmetricHashJoin(sc1, send2join_worker1, new int[] { 1 }, new int[] {
+        0 }, new int[] { 0 }, new int[] { 1 });
     join_worker1.setOpName("join_worker1_" + initName);
-    final SymmetricHashJoin join_worker2 =
-        new SymmetricHashJoin(sc1, send2join_worker2, new int[] { 1 }, new int[] { 0 }, new int[] { 0 },
-            new int[] { 1 });
+    final SymmetricHashJoin join_worker2 = new SymmetricHashJoin(sc1, send2join_worker2, new int[] { 1 }, new int[] {
+        0 }, new int[] { 0 }, new int[] { 1 });
     join_worker2.setOpName("join_worker2_" + initName);
     sp3_worker1.setChildren(new Operator[] { join_worker1 });
     sp3_worker2.setChildren(new Operator[] { join_worker2 });
@@ -268,10 +266,10 @@ public class FTModeTest extends SystemTestBase {
       }
     }
     if (sendingOpID != null) {
-      final GenericShuffleProducer sp_others_worker1 =
-          new GenericShuffleProducer(send2others_worker1, sendingOpID, workerIDs, pf1);
-      final GenericShuffleProducer sp_others_worker2 =
-          new GenericShuffleProducer(send2others_worker2, sendingOpID, workerIDs, pf1);
+      final GenericShuffleProducer sp_others_worker1 = new GenericShuffleProducer(send2others_worker1, sendingOpID,
+          workerIDs, pf1);
+      final GenericShuffleProducer sp_others_worker2 = new GenericShuffleProducer(send2others_worker2, sendingOpID,
+          workerIDs, pf1);
       sp_others_worker1.setOpName("sp_others_worker1_" + initName);
       sp_others_worker2.setOpName("sp_others_worker2_" + initName);
       workerPlan.get(0).add(sp_others_worker1);
@@ -279,18 +277,11 @@ public class FTModeTest extends SystemTestBase {
     }
   }
 
-  public static ExchangePairID[] removeNull(final ExchangePairID[] old) {
-    int size = 0;
+  public static List<ExchangePairID> removeNull(final ExchangePairID[] old) {
+    List<ExchangePairID> result = new ArrayList<ExchangePairID>();
     for (ExchangePairID id : old) {
       if (id != null) {
-        size++;
-      }
-    }
-    ExchangePairID[] result = new ExchangePairID[size];
-    int idx = 0;
-    for (ExchangePairID id : old) {
-      if (id != null) {
-        result[idx++] = id;
+        result.add(id);
       }
     }
     return result;
@@ -422,9 +413,8 @@ public class FTModeTest extends SystemTestBase {
     final Consumer eoiReceiver2 = new Consumer(IDBController.EOI_REPORT_SCHEMA, eoiReceiverOpID2, workerIDs);
     final Consumer eoiReceiver3 = new Consumer(IDBController.EOI_REPORT_SCHEMA, eoiReceiverOpID3, workerIDs);
     final UnionAll unionAll = new UnionAll(new Operator[] { eoiReceiver1, eoiReceiver2, eoiReceiver3 });
-    final EOSController eosController =
-        new EOSController(unionAll, new ExchangePairID[] {
-            eosReceiverOpID_idb1, eosReceiverOpID_idb2, eosReceiverOpID_idb3 }, workerIDs);
+    final EOSController eosController = new EOSController(unionAll, ImmutableList.of(eosReceiverOpID_idb1,
+        eosReceiverOpID_idb2, eosReceiverOpID_idb3), workerIDs);
     workerPlan.get(0).add(eosController);
 
     for (List<RootOperator> plan : workerPlan) {
@@ -527,9 +517,8 @@ public class FTModeTest extends SystemTestBase {
     eoiReceiver3.setOpName("eoiReceiver3");
     final UnionAll unionAll = new UnionAll(new Operator[] { eoiReceiver1, eoiReceiver2, eoiReceiver3 });
     unionAll.setOpName("merge");
-    final EOSController eosController =
-        new EOSController(unionAll, new ExchangePairID[] {
-            eosReceiverOpID_idb1, eosReceiverOpID_idb2, eosReceiverOpID_idb3 }, workerIDs);
+    final EOSController eosController = new EOSController(unionAll, ImmutableList.of(eosReceiverOpID_idb1,
+        eosReceiverOpID_idb2, eosReceiverOpID_idb3), workerIDs);
     eosController.setOpName("eoscontroller");
     workerPlan.get(0).add(eosController);
 
@@ -590,7 +579,7 @@ public class FTModeTest extends SystemTestBase {
       }
     }
     LOGGER.info(actualResult.numTuples() + " " + expectedResult.numTuples());
-    TestUtils.assertTupleBagEqual(TestUtils.tupleBatchToTupleBag(expectedResult), TestUtils
-        .tupleBatchToTupleBag(actualResult));
+    TestUtils.assertTupleBagEqual(TestUtils.tupleBatchToTupleBag(expectedResult), TestUtils.tupleBatchToTupleBag(
+        actualResult));
   }
 }

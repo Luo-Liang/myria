@@ -37,38 +37,36 @@ public class Q3 implements QueryPlanGenerator {
   final ExchangePairID sendToMasterID = ExchangePairID.newID();
 
   @Override
-  public Map<Integer, RootOperator[]> getWorkerPlan(int[] allWorkers) throws Exception {
+  public Map<Integer, RootOperator[]> getWorkerPlan(final int[] allWorkers) throws Exception {
     final ExchangePairID allArticlesShuffleID = ExchangePairID.newID();
     final ExchangePairID allSwrcPagesShuffleID = ExchangePairID.newID();
     final ExchangePairID collectCountID = ExchangePairID.newID();
 
-    final DbQueryScan allArticles =
-        new DbQueryScan(
-            "select t.subject from Triples t, Dictionary dtype, Dictionary darticle where t.predicate=dtype.id and t.object=darticle.id and darticle.val='bench:Article' and dtype.val='rdf:type';",
-            subjectSchema);
+    final DbQueryScan allArticles = new DbQueryScan(
+        "select t.subject from Triples t, Dictionary dtype, Dictionary darticle where t.predicate=dtype.id and t.object=darticle.id and darticle.val='bench:Article' and dtype.val='rdf:type';",
+        subjectSchema);
 
-    final DbQueryScan allWithSwrcPages =
-        new DbQueryScan(
-            "select t.subject from Triples t,Dictionary dtype where t.predicate=dtype.ID and dtype.val='swrc:pages';",
-            subjectSchema);
+    final DbQueryScan allWithSwrcPages = new DbQueryScan(
+        "select t.subject from Triples t,Dictionary dtype where t.predicate=dtype.ID and dtype.val='swrc:pages';",
+        subjectSchema);
 
-    final HashPartitionFunction pf = new HashPartitionFunction(allWorkers.length, 0);
+    final HashPartitionFunction pf = new HashPartitionFunction(0);
 
-    final GenericShuffleProducer shuffleArticlesP =
-        new GenericShuffleProducer(allArticles, allArticlesShuffleID, allWorkers, pf);
-    final GenericShuffleConsumer shuffleArticlesC =
-        new GenericShuffleConsumer(shuffleArticlesP.getSchema(), allArticlesShuffleID, allWorkers);
+    final GenericShuffleProducer shuffleArticlesP = new GenericShuffleProducer(allArticles, allArticlesShuffleID,
+        allWorkers, pf);
+    final GenericShuffleConsumer shuffleArticlesC = new GenericShuffleConsumer(shuffleArticlesP.getSchema(),
+        allArticlesShuffleID, allWorkers);
 
-    final GenericShuffleProducer shuffleSwrcPagesP =
-        new GenericShuffleProducer(allWithSwrcPages, allSwrcPagesShuffleID, allWorkers, pf);
-    final GenericShuffleConsumer shuffleSwrcPagesC =
-        new GenericShuffleConsumer(shuffleSwrcPagesP.getSchema(), allSwrcPagesShuffleID, allWorkers);
+    final GenericShuffleProducer shuffleSwrcPagesP = new GenericShuffleProducer(allWithSwrcPages, allSwrcPagesShuffleID,
+        allWorkers, pf);
+    final GenericShuffleConsumer shuffleSwrcPagesC = new GenericShuffleConsumer(shuffleSwrcPagesP.getSchema(),
+        allSwrcPagesShuffleID, allWorkers);
 
-    final SymmetricHashJoin joinArticleSwrcPages =
-        new SymmetricHashJoin(shuffleArticlesC, shuffleSwrcPagesC, new int[] { 0 }, new int[] { 0 });
+    final SymmetricHashJoin joinArticleSwrcPages = new SymmetricHashJoin(shuffleArticlesC, shuffleSwrcPagesC,
+        new int[] { 0 }, new int[] { 0 });
 
-    final Aggregate agg =
-        new Aggregate(joinArticleSwrcPages, new SingleColumnAggregatorFactory(0, AggregationOp.COUNT));
+    final Aggregate agg = new Aggregate(joinArticleSwrcPages, new SingleColumnAggregatorFactory(0,
+        AggregationOp.COUNT));
 
     final CollectProducer collectCountP = new CollectProducer(agg, collectCountID, allWorkers[0]);
 
@@ -89,9 +87,10 @@ public class Q3 implements QueryPlanGenerator {
   }
 
   @Override
-  public RootOperator getMasterPlan(int[] allWorkers, final LinkedBlockingQueue<TupleBatch> receivedTupleBatches) {
-    final CollectConsumer serverCollect =
-        new CollectConsumer(outputSchema, sendToMasterID, new int[] { allWorkers[0] });
+  public RootOperator getMasterPlan(final int[] allWorkers,
+      final LinkedBlockingQueue<TupleBatch> receivedTupleBatches) {
+    final CollectConsumer serverCollect = new CollectConsumer(outputSchema, sendToMasterID, new int[] {
+        allWorkers[0] });
     TBQueueExporter queueStore = new TBQueueExporter(receivedTupleBatches, serverCollect);
     SinkRoot serverPlan = new SinkRoot(queueStore);
     return serverPlan;

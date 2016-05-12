@@ -44,8 +44,8 @@ import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.LocalMultiwayConsumer;
 import edu.washington.escience.myria.operator.network.LocalMultiwayProducer;
-import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.parallel.Query;
 import edu.washington.escience.myria.parallel.SubQueryPlan;
@@ -104,8 +104,8 @@ public class ConnectedComponentTest extends SystemTestBase {
       final ExchangePairID eoiReceiverOpId, final ExchangePairID eosReceiverOpId, final ExchangePairID serverOpId,
       final boolean prioritized) {
     final int numPartition = 2;
-    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
-    final PartitionFunction pf1 = new HashPartitionFunction(numPartition, 1);
+    final PartitionFunction pf0 = new HashPartitionFunction(0);
+    final PartitionFunction pf1 = new HashPartitionFunction(1);
 
     // the query plan
     final DbQueryScan scan1 = new DbQueryScan(RelationKey.of("test", "test", "c"), table1Schema);
@@ -113,9 +113,8 @@ public class ConnectedComponentTest extends SystemTestBase {
     final GenericShuffleConsumer sc1 = new GenericShuffleConsumer(table1Schema, joinArrayId1, workerIDs);
     final GenericShuffleConsumer sc3 = new GenericShuffleConsumer(table1Schema, joinArrayId3, workerIDs);
     final Consumer eosReceiver = new Consumer(Schema.EMPTY_SCHEMA, eosReceiverOpId, new int[] { workerIDs[0] });
-    final IDBController idbController =
-        new IDBController(0, eoiReceiverOpId, workerIDs[0], sc1, sc3, eosReceiver, new KeepMinValue(new int[] { 0 },
-            new int[] { 1 }));
+    final IDBController idbController = new IDBController(0, eoiReceiverOpId, workerIDs[0], sc1, sc3, eosReceiver,
+        new KeepMinValue(new int[] { 0 }, new int[] { 1 }));
 
     final DbQueryScan scan2 = new DbQueryScan(RelationKey.of("test", "test", "g"), table2Schema);
     final GenericShuffleProducer sp2 = new GenericShuffleProducer(scan2, joinArrayId2, workerIDs, pf1);
@@ -123,13 +122,13 @@ public class ConnectedComponentTest extends SystemTestBase {
 
     final ExchangePairID mpId1 = ExchangePairID.newID();
     final ExchangePairID mpId2 = ExchangePairID.newID();
-    final LocalMultiwayProducer mp = new LocalMultiwayProducer(idbController, new ExchangePairID[] { mpId1, mpId2 });
+    final LocalMultiwayProducer mp = new LocalMultiwayProducer(idbController, ImmutableList.of(mpId1, mpId2));
     final LocalMultiwayConsumer mc1 = new LocalMultiwayConsumer(table1Schema, mpId1);
     final LocalMultiwayConsumer mc2 = new LocalMultiwayConsumer(table1Schema, mpId2);
-    final SymmetricHashJoin join =
-        new SymmetricHashJoin(sc2, mc1, new int[] { 1 }, new int[] { 0 }, new int[] { 0 }, new int[] { 1 }, false, true);
-    final SingleGroupByAggregate agg =
-        new SingleGroupByAggregate(mc2, 0, new SingleColumnAggregatorFactory(1, AggregationOp.MIN));
+    final SymmetricHashJoin join = new SymmetricHashJoin(sc2, mc1, new int[] { 1 }, new int[] { 0 }, new int[] { 0 },
+        new int[] { 1 }, false, true);
+    final SingleGroupByAggregate agg = new SingleGroupByAggregate(mc2, 0, new SingleColumnAggregatorFactory(1,
+        AggregationOp.MIN));
     final CollectProducer cp = new CollectProducer(agg, serverOpId, MASTER_ID);
     final GenericShuffleProducer sp3 = new GenericShuffleProducer(join, joinArrayId3, workerIDs, pf0);
     if (prioritized) {
@@ -223,16 +222,14 @@ public class ConnectedComponentTest extends SystemTestBase {
     final ExchangePairID eoiReceiverOpId = ExchangePairID.newID();
     final ExchangePairID eosReceiverOpId = ExchangePairID.newID();
     final ExchangePairID serverOpId = ExchangePairID.newID();
-    List<RootOperator> plan1 =
-        generatePlan(table1Schema, table2Schema, joinArrayId1, joinArrayId2, joinArrayId3, eoiReceiverOpId,
-            eosReceiverOpId, serverOpId, prioritized);
+    List<RootOperator> plan1 = generatePlan(table1Schema, table2Schema, joinArrayId1, joinArrayId2, joinArrayId3,
+        eoiReceiverOpId, eosReceiverOpId, serverOpId, prioritized);
     final Consumer eoiReceiver = new Consumer(IDBController.EOI_REPORT_SCHEMA, eoiReceiverOpId, workerIDs);
     final UnionAll union = new UnionAll(new Operator[] { eoiReceiver });
-    final EOSController eosController = new EOSController(union, new ExchangePairID[] { eosReceiverOpId }, workerIDs);
+    final EOSController eosController = new EOSController(union, ImmutableList.of(eosReceiverOpId), workerIDs);
     plan1.add(eosController);
-    List<RootOperator> plan2 =
-        generatePlan(table1Schema, table2Schema, joinArrayId1, joinArrayId2, joinArrayId3, eoiReceiverOpId,
-            eosReceiverOpId, serverOpId, prioritized);
+    List<RootOperator> plan2 = generatePlan(table1Schema, table2Schema, joinArrayId1, joinArrayId2, joinArrayId3,
+        eoiReceiverOpId, eosReceiverOpId, serverOpId, prioritized);
 
     if (failure) {
       for (RootOperator root : plan1) {

@@ -36,8 +36,8 @@ public class SplitDataTest extends SystemTestBase {
   @Test
   public void splitDataTest() throws Exception {
     /* Create a source of tuples containing the numbers 1 to 10001. */
-    final Schema schema =
-        new Schema(ImmutableList.of(Type.LONG_TYPE, Type.STRING_TYPE), ImmutableList.of("id", "name"));
+    final Schema schema = new Schema(ImmutableList.of(Type.LONG_TYPE, Type.STRING_TYPE), ImmutableList.of("id",
+        "name"));
     final TupleBatchBuffer tuples = new TupleBatchBuffer(schema);
     final int numTuplesInserted = 10001;
     for (long i = 0; i < numTuplesInserted; ++i) {
@@ -50,8 +50,8 @@ public class SplitDataTest extends SystemTestBase {
     /* Create the shuffle producer. */
     final ExchangePairID shuffleId = ExchangePairID.newID();
 
-    final GenericShuffleProducer scatter =
-        new GenericShuffleProducer(source, shuffleId, workerIDs, new RoundRobinPartitionFunction(workerIDs.length));
+    final GenericShuffleProducer scatter = new GenericShuffleProducer(source, shuffleId, workerIDs,
+        new RoundRobinPartitionFunction());
 
     /* ... and the corresponding shuffle consumer. */
     final GenericShuffleConsumer gather = new GenericShuffleConsumer(schema, shuffleId, new int[] { MASTER_ID });
@@ -72,9 +72,8 @@ public class SplitDataTest extends SystemTestBase {
     /*** TEST PHASE 2: Count them up, make sure the answer agrees. ***/
     /* Create the worker plan: DbQueryScan with count, then send it to master. */
     Schema countResultSchema = new Schema(ImmutableList.of(Type.LONG_TYPE), ImmutableList.of("localCount"));
-    final DbQueryScan scanCount =
-        new DbQueryScan("SELECT COUNT(*) FROM " + tuplesRRKey.toString(MyriaConstants.STORAGE_SYSTEM_SQLITE),
-            countResultSchema);
+    final DbQueryScan scanCount = new DbQueryScan("SELECT COUNT(*) FROM " + tuplesRRKey.toString(
+        MyriaConstants.STORAGE_SYSTEM_SQLITE), countResultSchema);
 
     final ExchangePairID collectId = ExchangePairID.newID();
     final CollectProducer send = new CollectProducer(scanCount, collectId, 0);
@@ -84,8 +83,8 @@ public class SplitDataTest extends SystemTestBase {
     }
     /* Create the Server plan: CollectConsumer and Sum. */
     final CollectConsumer receive = new CollectConsumer(countResultSchema, collectId, workerIDs);
-    Aggregate sumCount =
-        new Aggregate(receive, new SingleColumnAggregatorFactory(0, AggregationOp.COUNT, AggregationOp.SUM));
+    Aggregate sumCount = new Aggregate(receive, new SingleColumnAggregatorFactory(0, AggregationOp.COUNT,
+        AggregationOp.SUM));
     final LinkedBlockingQueue<TupleBatch> aggResult = new LinkedBlockingQueue<TupleBatch>();
     final TBQueueExporter queueStore = new TBQueueExporter(aggResult, sumCount);
     final SinkRoot serverPlan = new SinkRoot(queueStore);

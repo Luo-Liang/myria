@@ -3,6 +3,7 @@ package edu.washington.escience.myria.operator.network;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
@@ -49,11 +50,6 @@ public class EOSController extends Producer {
    */
   private final ImmutableMap<Integer, Integer> workerIdToIndex;
 
-  // /**
-  // * Mapping from EOSReceiver ID to index.
-  // * */
-  // private final TLongIntMap idbEOSReceiverIDToIndex;
-
   /**
    * Each worker in workerIDs has the whole array of idbOpIDS. So the total number of IDBController operators are
    * idbOpIDs.length*workerIDs.length.
@@ -62,15 +58,14 @@ public class EOSController extends Producer {
    * @param workerIDs the workers where the IDBController operators resides
    * @param idbOpIDs the IDB operatorIDs in each Worker
    */
-  public EOSController(final UnionAll child, final ExchangePairID[] idbOpIDs, final int[] workerIDs) {
+  public EOSController(final UnionAll child, final List<ExchangePairID> idbOpIDs, final int[] workerIDs) {
     super(null, idbOpIDs, workerIDs);
     if (child != null) {
       setChildren(new Operator[] { child });
     }
-    numEOI = new int[idbOpIDs.length][workerIDs.length];
+    numEOI = new int[idbOpIDs.size()][workerIDs.length];
     zeroCol = new ArrayList<Integer>();
-    eosZeroColValue = idbOpIDs.length * workerIDs.length;
-
+    eosZeroColValue = idbOpIDs.size() * workerIDs.length;
     int idx = 0;
     HashMap<Integer, Integer> tmp = new HashMap<>();
     for (int workerId : workerIDs) {

@@ -25,8 +25,8 @@ import edu.washington.escience.myria.operator.network.CollectConsumer;
 import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
-import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.storage.TupleBatchBuffer;
@@ -40,7 +40,8 @@ public class IterativeSelfJoinTest extends SystemTestBase {
   private final int numTbl1Worker1 = 2000;
   private final int numTbl1Worker2 = 2000;
 
-  public TupleBatchBuffer getResultInMemory(final TupleBatchBuffer table1, final Schema schema, final int numIteration) {
+  public TupleBatchBuffer getResultInMemory(final TupleBatchBuffer table1, final Schema schema,
+      final int numIteration) {
     // a brute force check
 
     final Iterator<List<? extends Column<?>>> tbs = table1.getAllAsRawColumn().iterator();
@@ -148,8 +149,8 @@ public class IterativeSelfJoinTest extends SystemTestBase {
     final DbQueryScan scan2 = new DbQueryScan(testtableKeys.get(0), tableSchema);
 
     final int numPartition = 2;
-    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
-    final PartitionFunction pf1 = new HashPartitionFunction(numPartition, 1);
+    final PartitionFunction pf0 = new HashPartitionFunction(0);
+    final PartitionFunction pf1 = new HashPartitionFunction(1);
 
     ArrayList<RootOperator> subqueries = new ArrayList<RootOperator>();
     final GenericShuffleProducer sp0[] = new GenericShuffleProducer[numIteration];
@@ -174,8 +175,8 @@ public class IterativeSelfJoinTest extends SystemTestBase {
 
       sc1[i] = new GenericShuffleConsumer(sp1[i - 1].getSchema(), arrayID1, new int[] { workerIDs[0], workerIDs[1] });
       sc2[i] = new GenericShuffleConsumer(sp2[i - 1].getSchema(), arrayID2, new int[] { workerIDs[0], workerIDs[1] });
-      localjoin[i] =
-          new SymmetricHashJoin(sc1[i], sc2[i], new int[] { 1 }, new int[] { 0 }, new int[] { 0 }, new int[] { 1 });
+      localjoin[i] = new SymmetricHashJoin(sc1[i], sc2[i], new int[] { 1 }, new int[] { 0 }, new int[] { 0 },
+          new int[] { 1 });
       arrayID0 = ExchangePairID.newID();
 
       sp0[i] = new GenericShuffleProducer(localjoin[i], arrayID0, new int[] { workerIDs[0], workerIDs[1] }, pf0);
@@ -202,8 +203,8 @@ public class IterativeSelfJoinTest extends SystemTestBase {
     workerPlans.put(workerIDs[0], subqueries.toArray(new RootOperator[subqueries.size()]));
     workerPlans.put(workerIDs[1], subqueries.toArray(new RootOperator[subqueries.size()]));
 
-    final CollectConsumer serverCollect =
-        new CollectConsumer(tableSchema, serverReceiveID, new int[] { workerIDs[0], workerIDs[1] });
+    final CollectConsumer serverCollect = new CollectConsumer(tableSchema, serverReceiveID, new int[] {
+        workerIDs[0], workerIDs[1] });
     final LinkedBlockingQueue<TupleBatch> receivedTupleBatches = new LinkedBlockingQueue<TupleBatch>();
     final TBQueueExporter queueStore = new TBQueueExporter(receivedTupleBatches, serverCollect);
     SinkRoot serverPlan = new SinkRoot(queueStore);

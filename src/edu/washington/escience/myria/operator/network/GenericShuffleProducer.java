@@ -1,12 +1,13 @@
 package edu.washington.escience.myria.operator.network;
 
-import com.google.common.base.Preconditions;
+import java.util.List;
 
 import edu.washington.escience.myria.DbException;
 import edu.washington.escience.myria.operator.Operator;
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
+import jersey.repackaged.com.google.common.collect.ImmutableList;
 
 /**
  * GenericShuffleProducer, which support json encoding of 1. Broadcast Shuffle 2. One to one Shuffle (Shuffle) 3. Hyper
@@ -23,19 +24,6 @@ public class GenericShuffleProducer extends Producer {
   private final PartitionFunction partitionFunction;
 
   /**
-   * Shuffle to the operator ID on one worker.
-   * 
-   * @param child the child who provides data for this producer to distribute.
-   * @param operatorID the destination operator ID where the data goes
-   * @param workerID the set of destination worker
-   * @param pf the partition function
-   */
-  public GenericShuffleProducer(final Operator child, final ExchangePairID operatorID, final int workerID,
-      final PartitionFunction pf) {
-    this(child, new ExchangePairID[] { operatorID }, new int[] { workerID }, pf);
-  }
-
-  /**
    * Shuffle to the operator ID on multiple workers.
    * 
    * @param child the child who provides data for this producer to distribute.
@@ -45,7 +33,7 @@ public class GenericShuffleProducer extends Producer {
    */
   public GenericShuffleProducer(final Operator child, final ExchangePairID operatorID, final int[] workerIDs,
       final PartitionFunction pf) {
-    this(child, new ExchangePairID[] { operatorID }, workerIDs, pf);
+    this(child, ImmutableList.of(operatorID), workerIDs, pf);
   }
 
   /**
@@ -56,7 +44,7 @@ public class GenericShuffleProducer extends Producer {
    * @param workerID the destination worker
    * @param pf the partition function
    */
-  public GenericShuffleProducer(final Operator child, final ExchangePairID[] operatorIDs, final int workerID,
+  public GenericShuffleProducer(final Operator child, final List<ExchangePairID> operatorIDs, final int workerID,
       final PartitionFunction pf) {
     this(child, operatorIDs, new int[] { workerID }, pf);
   }
@@ -69,10 +57,10 @@ public class GenericShuffleProducer extends Producer {
    * @param workerIDs set of destination workers
    * @param pf the partition function
    */
-  public GenericShuffleProducer(final Operator child, final ExchangePairID[] operatorIDs, final int[] workerIDs,
+  private GenericShuffleProducer(final Operator child, final List<ExchangePairID> operatorIDs, final int[] workerIDs,
       final PartitionFunction pf) {
     super(child, operatorIDs, workerIDs);
-    Preconditions.checkArgument(pf.numDestinations() == getNumOfChannels());
+    pf.setNumDestinations(getNumOfChannels());
     partitionFunction = pf;
   }
 

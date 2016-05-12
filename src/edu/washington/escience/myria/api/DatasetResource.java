@@ -87,7 +87,8 @@ public final class DatasetResource {
    */
   @GET
   @ApiOperation(value = "get information about a dataset", response = DatasetStatus.class)
-  @ApiResponses(value = { @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = "Dataset not found", response = String.class) })
+  @ApiResponses(value = {
+      @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = "Dataset not found", response = String.class) })
   @Path("/user-{userName}/program-{programName}/relation-{relationName}")
   public Response getDataset(@PathParam("userName") final String userName,
       @PathParam("programName") final String programName, @PathParam("relationName") final String relationName)
@@ -188,8 +189,8 @@ public final class DatasetResource {
       } else {
         throw new IllegalStateException("format should have been validated by now, and yet we got here");
       }
-      ContentDisposition contentDisposition =
-          ContentDisposition.type("attachment").fileName(relationKey.toString() + '.' + validFormat).build();
+      ContentDisposition contentDisposition = ContentDisposition.type("attachment").fileName(relationKey.toString()
+          + '.' + validFormat).build();
 
       response.header("Content-Disposition", contentDisposition);
       response.type(MediaType.APPLICATION_OCTET_STREAM);
@@ -247,8 +248,8 @@ public final class DatasetResource {
       } else {
         throw new IllegalStateException("format should have been validated by now, and yet we got here");
       }
-      ContentDisposition contentDisposition =
-          ContentDisposition.type("attachment").fileName("test" + '.' + validFormat).build();
+      ContentDisposition contentDisposition = ContentDisposition.type("attachment").fileName("test" + '.' + validFormat)
+          .build();
 
       response.header("Content-Disposition", contentDisposition);
       response.type(MediaType.APPLICATION_OCTET_STREAM);
@@ -314,7 +315,7 @@ public final class DatasetResource {
     HowPartitioned howPartitioned = server.getDatasetStatus(relationKey).getHowPartitioned();
     PartitionFunction pf = howPartitioned.getPf();
     if (pf == null) {
-      pf = new RoundRobinPartitionFunction(null);
+      pf = new RoundRobinPartitionFunction();
     }
     return doIngest(relationKey, source, howPartitioned.getWorkers(), null, true, builder, pf);
   }
@@ -433,7 +434,7 @@ public final class DatasetResource {
     ResponseBuilder builder = Response.created(datasetUri);
 
     return doIngest(relationKey, scan, null, null, overwrite, builder, MoreObjects.firstNonNull(partitionFunction,
-        new RoundRobinPartitionFunction(null)));
+        new RoundRobinPartitionFunction()));
   }
 
   /**
@@ -500,11 +501,13 @@ public final class DatasetResource {
   @POST
   @Path("/addDatasetToCatalog")
   @Consumes(MediaType.APPLICATION_JSON)
-  public Response addDatasetToCatalog(final DatasetEncoding dataset, @Context final UriInfo uriInfo) throws DbException {
+  public Response addDatasetToCatalog(final DatasetEncoding dataset, @Context final UriInfo uriInfo)
+      throws DbException {
 
     /* If we already have a dataset by this name, tell the user there's a conflict. */
     try {
-      if (!MoreObjects.firstNonNull(dataset.overwrite, Boolean.FALSE) && server.getSchema(dataset.relationKey) != null) {
+      if (!MoreObjects.firstNonNull(dataset.overwrite, Boolean.FALSE) && server.getSchema(
+          dataset.relationKey) != null) {
         /* Found, throw a 409 (Conflict) */
         throw new MyriaApiException(Status.CONFLICT, "That dataset already exists.");
       }
@@ -630,7 +633,7 @@ public final class DatasetResource {
    * @return a builder for the canonical URL for this API.
    */
   public static UriBuilder getCanonicalResourcePathBuilder(final UriInfo uriInfo, final RelationKey relationKey) {
-    return getCanonicalResourcePathBuilder(uriInfo).path("user-" + relationKey.getUserName()).path(
-        "program-" + relationKey.getProgramName()).path("relation-" + relationKey.getRelationName());
+    return getCanonicalResourcePathBuilder(uriInfo).path("user-" + relationKey.getUserName()).path("program-"
+        + relationKey.getProgramName()).path("relation-" + relationKey.getRelationName());
   }
 }

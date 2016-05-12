@@ -23,8 +23,8 @@ import edu.washington.escience.myria.operator.network.CollectConsumer;
 import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
-import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 
@@ -48,34 +48,28 @@ public class JoinQueryPostgres implements QueryPlanGenerator, Serializable {
   final ExchangePairID sendToMasterID = ExchangePairID.newID();
 
   @Override
-  public Map<Integer, RootOperator[]> getWorkerPlan(int[] allWorkers) throws Exception {
+  public Map<Integer, RootOperator[]> getWorkerPlan(final int[] allWorkers) throws Exception {
 
-    final DbQueryScan localScan =
-        new DbQueryScan( //
-            "select sourceIPAddr, sum(adRevenue) as sumAdRevenue, sum(pageRank) as sumPageRank, count(pageRank) as countPageRank"
-                + //
-                "  from UserVisits, Rankings" + //
-                "  where visitDate between date '2000-01-15' and date '2000-01-22'" + //
-                "        and Rankings.pageURL=UserVisits.destinationURL" + //
-                "  group by sourceIPAddr", scanSchema);
+    final DbQueryScan localScan = new DbQueryScan( //
+        "select sourceIPAddr, sum(adRevenue) as sumAdRevenue, sum(pageRank) as sumPageRank, count(pageRank) as countPageRank"
+            + //
+            "  from UserVisits, Rankings" + //
+            "  where visitDate between date '2000-01-15' and date '2000-01-22'" + //
+            "        and Rankings.pageURL=UserVisits.destinationURL" + //
+            "  group by sourceIPAddr", scanSchema);
 
     final ExchangePairID localScanID = ExchangePairID.newID();
-    // final ExchangePairID setFilterID = ExchangePairID.newID();
-    // final ExchangePairID joinID = ExchangePairID.newID();
-    // final ExchangePairID globalAggID = ExchangePairID.newID();
 
     // shuffle by destURL to get pageRanks
-    PartitionFunction pf = new HashPartitionFunction(allWorkers.length, 0);
+    PartitionFunction pf = new HashPartitionFunction(0);
 
     final GenericShuffleProducer spLocalScan = new GenericShuffleProducer(localScan, localScanID, allWorkers, pf);
-    final GenericShuffleConsumer scLocalScan =
-        new GenericShuffleConsumer(spLocalScan.getSchema(), localScanID, allWorkers);
+    final GenericShuffleConsumer scLocalScan = new GenericShuffleConsumer(spLocalScan.getSchema(), localScanID,
+        allWorkers);
 
-    final SingleGroupByAggregate globalAgg =
-        new SingleGroupByAggregate(scLocalScan, 0, new AggregatorFactory[] {
-            new SingleColumnAggregatorFactory(1, AggregationOp.SUM),
-            new SingleColumnAggregatorFactory(2, AggregationOp.SUM),
-            new SingleColumnAggregatorFactory(3, AggregationOp.SUM) });
+    final SingleGroupByAggregate globalAgg = new SingleGroupByAggregate(scLocalScan, 0, new AggregatorFactory[] {
+        new SingleColumnAggregatorFactory(1, AggregationOp.SUM), new SingleColumnAggregatorFactory(2,
+            AggregationOp.SUM), new SingleColumnAggregatorFactory(3, AggregationOp.SUM) });
 
     GlobalAvg globalAvg = new GlobalAvg(1, 0);
     globalAvg.setChildren(new Operator[] { globalAgg });
@@ -93,7 +87,7 @@ public class JoinQueryPostgres implements QueryPlanGenerator, Serializable {
   }
 
   @Override
-  public SinkRoot getMasterPlan(int[] allWorkers, final LinkedBlockingQueue<TupleBatch> receivedTupleBatches) {
+  public SinkRoot getMasterPlan(final int[] allWorkers, final LinkedBlockingQueue<TupleBatch> receivedTupleBatches) {
     final CollectConsumer serverCollect = new CollectConsumer(outputSchema, sendToMasterID, allWorkers);
     final Top1 topRevenue = new Top1(1);
     topRevenue.setChildren(new Operator[] { serverCollect });
@@ -101,7 +95,7 @@ public class JoinQueryPostgres implements QueryPlanGenerator, Serializable {
     return serverPlan;
   }
 
-  public static void main(String[] args) throws Exception {
+  public static void main(final String[] args) throws Exception {
     final ByteArrayOutputStream inMemBuffer = new ByteArrayOutputStream();
     final ObjectOutputStream oos = new ObjectOutputStream(inMemBuffer);
     oos.writeObject(new JoinQueryPostgres().getMasterPlan(new int[] { 0, 1 }, null));

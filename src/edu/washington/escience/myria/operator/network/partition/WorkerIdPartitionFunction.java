@@ -28,7 +28,7 @@ public final class WorkerIdPartitionFunction extends PartitionFunction {
    */
   @JsonCreator
   public WorkerIdPartitionFunction(@JsonProperty(value = "index", required = true) final Integer index) {
-    super(null);
+    super();
     this.index = Objects.requireNonNull(index, "missing property index");
     Preconditions.checkArgument(this.index >= 0, "WorkerIdPartitionFunction field index cannot take negative value %s",
         this.index);

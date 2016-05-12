@@ -17,7 +17,7 @@ public abstract class AbstractProducerEncoding<P extends Producer> extends Unary
   }
 
   @Override
-  public final void setRealWorkerIds(Set<Integer> w) {
+  public final void setRealWorkerIds(final Set<Integer> w) {
     realWorkerIds = w;
   }
 
@@ -27,7 +27,7 @@ public abstract class AbstractProducerEncoding<P extends Producer> extends Unary
   }
 
   @Override
-  public final void setRealOperatorIds(List<ExchangePairID> operatorIds) {
+  public final void setRealOperatorIds(final List<ExchangePairID> operatorIds) {
     realOperatorIds = operatorIds;
   }
 }

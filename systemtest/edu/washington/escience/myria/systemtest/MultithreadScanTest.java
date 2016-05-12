@@ -26,8 +26,8 @@ import edu.washington.escience.myria.operator.network.CollectConsumer;
 import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
-import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.storage.TupleBatchBuffer;
@@ -39,7 +39,8 @@ public class MultithreadScanTest extends SystemTestBase {
   private final int MaxID = 100;
   private final int numTbl1Worker1 = 50;
 
-  public TupleBatchBuffer getResultInMemory(final TupleBatchBuffer table1, final Schema schema, final int numIteration) {
+  public TupleBatchBuffer getResultInMemory(final TupleBatchBuffer table1, final Schema schema,
+      final int numIteration) {
     // a brute force check
 
     final Iterator<List<? extends Column<?>>> tbs = table1.getAllAsRawColumn().iterator();
@@ -125,8 +126,8 @@ public class MultithreadScanTest extends SystemTestBase {
 
     final DbQueryScan scan1 = new DbQueryScan(testtableKey, tableSchema);
     final DbQueryScan scan2 = new DbQueryScan(testtableKey, tableSchema);
-    final SymmetricHashJoin localjoin =
-        new SymmetricHashJoin(scan1, scan2, new int[] { 1 }, new int[] { 0 }, new int[] { 0 }, new int[] { 1 });
+    final SymmetricHashJoin localjoin = new SymmetricHashJoin(scan1, scan2, new int[] { 1 }, new int[] { 0 },
+        new int[] { 0 }, new int[] { 1 });
     final StreamingStateWrapper de = new StreamingStateWrapper(localjoin, new DupElim());
 
     final ExchangePairID serverReceiveID = ExchangePairID.newID();
@@ -136,8 +137,8 @@ public class MultithreadScanTest extends SystemTestBase {
     workerPlans.put(workerIDs[0], new RootOperator[] { cp });
     workerPlans.put(workerIDs[1], new RootOperator[] { cp });
 
-    final CollectConsumer serverCollect =
-        new CollectConsumer(tableSchema, serverReceiveID, new int[] { workerIDs[0], workerIDs[1] });
+    final CollectConsumer serverCollect = new CollectConsumer(tableSchema, serverReceiveID, new int[] {
+        workerIDs[0], workerIDs[1] });
     final LinkedBlockingQueue<TupleBatch> receivedTupleBatches = new LinkedBlockingQueue<TupleBatch>();
     final TBQueueExporter queueStore = new TBQueueExporter(receivedTupleBatches, serverCollect);
     final SinkRoot serverPlan = new SinkRoot(queueStore);
@@ -189,30 +190,29 @@ public class MultithreadScanTest extends SystemTestBase {
 
     final DbQueryScan scan1 = new DbQueryScan(testtableKey, tableSchema);
     final DbQueryScan scan2 = new DbQueryScan(testtableKey, tableSchema);
-    final SymmetricHashJoin localjoin1 =
-        new SymmetricHashJoin(scan1, scan2, new int[] { 1 }, new int[] { 0 }, new int[] { 0 }, new int[] { 1 });
+    final SymmetricHashJoin localjoin1 = new SymmetricHashJoin(scan1, scan2, new int[] { 1 }, new int[] { 0 },
+        new int[] { 0 }, new int[] { 1 });
     final StreamingStateWrapper de1 = new StreamingStateWrapper(localjoin1, new DupElim());
     final DbQueryScan scan3 = new DbQueryScan(testtableKey, tableSchema);
     final DbQueryScan scan4 = new DbQueryScan(testtableKey, tableSchema);
-    final SymmetricHashJoin localjoin2 =
-        new SymmetricHashJoin(scan3, scan4, new int[] { 1 }, new int[] { 0 }, new int[] { 0 }, new int[] { 1 });
+    final SymmetricHashJoin localjoin2 = new SymmetricHashJoin(scan3, scan4, new int[] { 1 }, new int[] { 0 },
+        new int[] { 0 }, new int[] { 1 });
     final StreamingStateWrapper de2 = new StreamingStateWrapper(localjoin2, new DupElim());
 
-    final int numPartition = 2;
-    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0); // 2 workers
+    final PartitionFunction pf0 = new HashPartitionFunction(0);
 
     ExchangePairID arrayID1, arrayID2;
     arrayID1 = ExchangePairID.newID();
     arrayID2 = ExchangePairID.newID();
 
-    final GenericShuffleProducer sp1 =
-        new GenericShuffleProducer(de1, arrayID1, new int[] { workerIDs[0], workerIDs[1] }, pf0);
-    final GenericShuffleProducer sp2 =
-        new GenericShuffleProducer(de2, arrayID2, new int[] { workerIDs[0], workerIDs[1] }, pf0);
-    final GenericShuffleConsumer sc1 =
-        new GenericShuffleConsumer(sp1.getSchema(), arrayID1, new int[] { workerIDs[0], workerIDs[1] });
-    final GenericShuffleConsumer sc2 =
-        new GenericShuffleConsumer(sp2.getSchema(), arrayID2, new int[] { workerIDs[0], workerIDs[1] });
+    final GenericShuffleProducer sp1 = new GenericShuffleProducer(de1, arrayID1, new int[] {
+        workerIDs[0], workerIDs[1] }, pf0);
+    final GenericShuffleProducer sp2 = new GenericShuffleProducer(de2, arrayID2, new int[] {
+        workerIDs[0], workerIDs[1] }, pf0);
+    final GenericShuffleConsumer sc1 = new GenericShuffleConsumer(sp1.getSchema(), arrayID1, new int[] {
+        workerIDs[0], workerIDs[1] });
+    final GenericShuffleConsumer sc2 = new GenericShuffleConsumer(sp2.getSchema(), arrayID2, new int[] {
+        workerIDs[0], workerIDs[1] });
     final UnionAll unionAll = new UnionAll(new Operator[] { sc1, sc2 });
 
     final ExchangePairID serverReceiveID = ExchangePairID.newID();
@@ -221,8 +221,8 @@ public class MultithreadScanTest extends SystemTestBase {
     workerPlans.put(workerIDs[0], new RootOperator[] { cp, sp1, sp2 });
     workerPlans.put(workerIDs[1], new RootOperator[] { cp, sp1, sp2 });
 
-    final CollectConsumer serverCollect =
-        new CollectConsumer(tableSchema, serverReceiveID, new int[] { workerIDs[0], workerIDs[1] });
+    final CollectConsumer serverCollect = new CollectConsumer(tableSchema, serverReceiveID, new int[] {
+        workerIDs[0], workerIDs[1] });
     final LinkedBlockingQueue<TupleBatch> receivedTupleBatches = new LinkedBlockingQueue<TupleBatch>();
     final TBQueueExporter queueStore = new TBQueueExporter(receivedTupleBatches, serverCollect);
     final SinkRoot serverPlan = new SinkRoot(queueStore);

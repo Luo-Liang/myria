@@ -44,8 +44,9 @@ public class ErdosVerbose {
 
   final static ExchangePairID sendToMasterID = ExchangePairID.newID();
 
-  public static StreamingStateWrapper erdosOne(int[] allWorkers, ArrayList<Producer> producers) throws DbException {
-    final HashPartitionFunction pfOn0 = new HashPartitionFunction(allWorkers.length, 0);
+  public static StreamingStateWrapper erdosOne(final int[] allWorkers, final ArrayList<Producer> producers)
+      throws DbException {
+    final HashPartitionFunction pfOn0 = new HashPartitionFunction(0);
 
     final ExchangePairID paulErdoesPubsShuffleID = ExchangePairID.newID();
     final ExchangePairID coAuthorShuffleID = ExchangePairID.newID();
@@ -58,14 +59,14 @@ public class ErdosVerbose {
             "join Dictionary creator on pubs.predicate=creator.id " + //
             "join Dictionary pubName on pubs.subject=pubName.id " + //
             "where pe.val='<http://localhost/persons/Paul_Erdoes>' " + //
-            "and creator.val='dc:creator'",//
+            "and creator.val='dc:creator'", //
         singleStringSchema);
     // schema: (pubName string)
 
-    final GenericShuffleProducer paulErdoesPubsShuffleP =
-        new GenericShuffleProducer(paulErdoesPubs, paulErdoesPubsShuffleID, allWorkers, pfOn0);
-    final GenericShuffleConsumer paulErdoesPubsShuffleC =
-        new GenericShuffleConsumer(paulErdoesPubsShuffleP.getSchema(), paulErdoesPubsShuffleID, allWorkers);
+    final GenericShuffleProducer paulErdoesPubsShuffleP = new GenericShuffleProducer(paulErdoesPubs,
+        paulErdoesPubsShuffleID, allWorkers, pfOn0);
+    final GenericShuffleConsumer paulErdoesPubsShuffleC = new GenericShuffleConsumer(paulErdoesPubsShuffleP.getSchema(),
+        paulErdoesPubsShuffleID, allWorkers);
     // schema: (pubName string)
 
     final DbQueryScan allPubs = new DbQueryScan(//
@@ -78,14 +79,14 @@ public class ErdosVerbose {
         twoStringsSchema);
     // schema: (pubName string, authorName string)
 
-    final GenericShuffleProducer allPubsShuffleP =
-        new GenericShuffleProducer(allPubs, allPubsShuffleID, allWorkers, pfOn0);
-    final GenericShuffleConsumer allPubsShuffleC =
-        new GenericShuffleConsumer(allPubsShuffleP.getSchema(), allPubsShuffleID, allWorkers);
+    final GenericShuffleProducer allPubsShuffleP = new GenericShuffleProducer(allPubs, allPubsShuffleID, allWorkers,
+        pfOn0);
+    final GenericShuffleConsumer allPubsShuffleC = new GenericShuffleConsumer(allPubsShuffleP.getSchema(),
+        allPubsShuffleID, allWorkers);
     // schema: (pubName string, authorName string)
 
-    final SymmetricHashJoin joinCoAuthors =
-        new SymmetricHashJoin(paulErdoesPubsShuffleC, allPubsShuffleC, new int[] { 0 }, new int[] { 0 });
+    final SymmetricHashJoin joinCoAuthors = new SymmetricHashJoin(paulErdoesPubsShuffleC, allPubsShuffleC, new int[] {
+        0 }, new int[] { 0 });
     // schema: (pubName string, pubName String, authorName string)
 
     final Apply projCoAuthorID = Applys.columnSelect(joinCoAuthors, 2);
@@ -93,10 +94,10 @@ public class ErdosVerbose {
     final StreamingStateWrapper localDECoAuthorID = new StreamingStateWrapper(projCoAuthorID, new DupElim());
     // schema: (authorName String)
 
-    final GenericShuffleProducer coAuthorShuffleP =
-        new GenericShuffleProducer(localDECoAuthorID, coAuthorShuffleID, allWorkers, pfOn0);
-    final GenericShuffleConsumer coAuthorShuffleC =
-        new GenericShuffleConsumer(coAuthorShuffleP.getSchema(), coAuthorShuffleID, allWorkers);
+    final GenericShuffleProducer coAuthorShuffleP = new GenericShuffleProducer(localDECoAuthorID, coAuthorShuffleID,
+        allWorkers, pfOn0);
+    final GenericShuffleConsumer coAuthorShuffleC = new GenericShuffleConsumer(coAuthorShuffleP.getSchema(),
+        coAuthorShuffleID, allWorkers);
     // schema: (authorName String)
     producers.add(coAuthorShuffleP);
     producers.add(allPubsShuffleP);
@@ -105,11 +106,11 @@ public class ErdosVerbose {
     return new StreamingStateWrapper(coAuthorShuffleC, new DupElim());
   }
 
-  public static StreamingStateWrapper erdosN(StreamingStateWrapper erdosNMinus1, int[] allWorkers,
-      ArrayList<Producer> producers) throws DbException {
+  public static StreamingStateWrapper erdosN(final StreamingStateWrapper erdosNMinus1, final int[] allWorkers,
+      final ArrayList<Producer> producers) throws DbException {
 
-    final HashPartitionFunction pfOn0 = new HashPartitionFunction(allWorkers.length, 0);
-    final HashPartitionFunction pfOn1 = new HashPartitionFunction(allWorkers.length, 1);
+    final HashPartitionFunction pfOn0 = new HashPartitionFunction(0);
+    final HashPartitionFunction pfOn1 = new HashPartitionFunction(1);
 
     final DbQueryScan allPubs2 = new DbQueryScan(//
         "select pubName.val, authorName.val " + //
@@ -122,14 +123,14 @@ public class ErdosVerbose {
     // schema: (pubName string, authorName String)
 
     ExchangePairID allPubsShuffleByAuthorID = ExchangePairID.newID();
-    final GenericShuffleProducer allPubsShuffleByAuthorP =
-        new GenericShuffleProducer(allPubs2, allPubsShuffleByAuthorID, allWorkers, pfOn1);
-    final GenericShuffleConsumer allPubsShuffleByAuthorC =
-        new GenericShuffleConsumer(allPubsShuffleByAuthorP.getSchema(), allPubsShuffleByAuthorID, allWorkers);
+    final GenericShuffleProducer allPubsShuffleByAuthorP = new GenericShuffleProducer(allPubs2,
+        allPubsShuffleByAuthorID, allWorkers, pfOn1);
+    final GenericShuffleConsumer allPubsShuffleByAuthorC = new GenericShuffleConsumer(allPubsShuffleByAuthorP
+        .getSchema(), allPubsShuffleByAuthorID, allWorkers);
     // schema: (pubName string, authorName String)
 
-    final SymmetricHashJoin joinCoAuthorPubs =
-        new SymmetricHashJoin(erdosNMinus1, allPubsShuffleByAuthorC, new int[] { 0 }, new int[] { 1 });
+    final SymmetricHashJoin joinCoAuthorPubs = new SymmetricHashJoin(erdosNMinus1, allPubsShuffleByAuthorC, new int[] {
+        0 }, new int[] { 1 });
     // schema: (authorName string, pubName string, authorName String)
 
     final Apply projCoAuthorPubsID = Applys.columnSelect(joinCoAuthorPubs, 1);
@@ -139,10 +140,10 @@ public class ErdosVerbose {
     // schema: (pubName string)
 
     ExchangePairID coAuthorPubsShuffleID = ExchangePairID.newID();
-    final GenericShuffleProducer coAuthorPubsShuffleP =
-        new GenericShuffleProducer(coAuthorPubsLocalDE, coAuthorPubsShuffleID, allWorkers, pfOn0);
-    final GenericShuffleConsumer coAuthorPubsShuffleC =
-        new GenericShuffleConsumer(coAuthorPubsShuffleP.getSchema(), coAuthorPubsShuffleID, allWorkers);
+    final GenericShuffleProducer coAuthorPubsShuffleP = new GenericShuffleProducer(coAuthorPubsLocalDE,
+        coAuthorPubsShuffleID, allWorkers, pfOn0);
+    final GenericShuffleConsumer coAuthorPubsShuffleC = new GenericShuffleConsumer(coAuthorPubsShuffleP.getSchema(),
+        coAuthorPubsShuffleID, allWorkers);
     // schema: (pubName string)
 
     final StreamingStateWrapper coAuthorPubsGlobalDE = new StreamingStateWrapper(coAuthorPubsShuffleC, new DupElim());
@@ -159,14 +160,14 @@ public class ErdosVerbose {
     // schema: (pubName string, authorName string)
 
     ExchangePairID coAuthorNamesPubsShuffleID = ExchangePairID.newID();
-    final GenericShuffleProducer coAuthorNamesPubsShuffleP =
-        new GenericShuffleProducer(allPubsAuthorNames, coAuthorNamesPubsShuffleID, allWorkers, pfOn0);
-    final GenericShuffleConsumer coAuthorNamesPubsShuffleC =
-        new GenericShuffleConsumer(coAuthorNamesPubsShuffleP.getSchema(), coAuthorNamesPubsShuffleID, allWorkers);
+    final GenericShuffleProducer coAuthorNamesPubsShuffleP = new GenericShuffleProducer(allPubsAuthorNames,
+        coAuthorNamesPubsShuffleID, allWorkers, pfOn0);
+    final GenericShuffleConsumer coAuthorNamesPubsShuffleC = new GenericShuffleConsumer(coAuthorNamesPubsShuffleP
+        .getSchema(), coAuthorNamesPubsShuffleID, allWorkers);
     // schema: (pubName string, authorName string)
 
-    final SymmetricHashJoin joinCoCoAuthorPubs =
-        new SymmetricHashJoin(coAuthorPubsGlobalDE, coAuthorNamesPubsShuffleC, new int[] { 0 }, new int[] { 0 });
+    final SymmetricHashJoin joinCoCoAuthorPubs = new SymmetricHashJoin(coAuthorPubsGlobalDE, coAuthorNamesPubsShuffleC,
+        new int[] { 0 }, new int[] { 0 });
     // schema: (pubName string, pubName string, authorName string)
 
     final Apply projCoCoAuthorName = Applys.columnSelect(joinCoCoAuthorPubs, 2);
@@ -176,10 +177,10 @@ public class ErdosVerbose {
     // schema: (authorName string)
 
     ExchangePairID coCoAuthorNameShuffleID = ExchangePairID.newID();
-    final GenericShuffleProducer coCoAuthorNameShuffleP =
-        new GenericShuffleProducer(coCoAuthorNameLocalDE, coCoAuthorNameShuffleID, allWorkers, pfOn0);
-    final GenericShuffleConsumer coCoAuthorNameShuffleC =
-        new GenericShuffleConsumer(coCoAuthorNameShuffleP.getSchema(), coCoAuthorNameShuffleID, allWorkers);
+    final GenericShuffleProducer coCoAuthorNameShuffleP = new GenericShuffleProducer(coCoAuthorNameLocalDE,
+        coCoAuthorNameShuffleID, allWorkers, pfOn0);
+    final GenericShuffleConsumer coCoAuthorNameShuffleC = new GenericShuffleConsumer(coCoAuthorNameShuffleP.getSchema(),
+        coCoAuthorNameShuffleID, allWorkers);
     // schema: (authorName string)
 
     producers.add(coCoAuthorNameShuffleP);
@@ -190,7 +191,8 @@ public class ErdosVerbose {
     // schema: (authorName string)
   }
 
-  public static StreamingStateWrapper erdosN(int n, int[] allWorkers, ArrayList<Producer> producers) throws DbException {
+  public static StreamingStateWrapper erdosN(final int n, final int[] allWorkers, final ArrayList<Producer> producers)
+      throws DbException {
     StreamingStateWrapper erdos1 = erdosOne(allWorkers, producers);
     if (n <= 1) {
       return erdos1;
@@ -203,8 +205,8 @@ public class ErdosVerbose {
     }
   }
 
-  public static Map<Integer, RootOperator[]> getWorkerPlan(int[] allWorkers, StreamingStateWrapper de,
-      ArrayList<Producer> producers) throws Exception {
+  public static Map<Integer, RootOperator[]> getWorkerPlan(final int[] allWorkers, final StreamingStateWrapper de,
+      final ArrayList<Producer> producers) throws Exception {
 
     final CollectProducer sendToMaster = new CollectProducer(de, sendToMasterID, 0);
 
@@ -216,8 +218,8 @@ public class ErdosVerbose {
     return result;
   }
 
-  public static RootOperator getMasterPlan(int[] allWorkers, final LinkedBlockingQueue<TupleBatch> receivedTupleBatches)
-      throws Exception {
+  public static RootOperator getMasterPlan(final int[] allWorkers,
+      final LinkedBlockingQueue<TupleBatch> receivedTupleBatches) throws Exception {
     final CollectConsumer serverCollect = new CollectConsumer(outputSchema, sendToMasterID, allWorkers);
     TBQueueExporter queueStore = new TBQueueExporter(receivedTupleBatches, serverCollect);
     SinkRoot serverPlan = new SinkRoot(queueStore);

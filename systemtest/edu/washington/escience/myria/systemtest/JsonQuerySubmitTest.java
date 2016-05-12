@@ -142,7 +142,7 @@ public class JsonQuerySubmitTest extends SystemTestBase {
     delimiter = ' ';
     RelationKey keyP = RelationKey.of("public", "adhoc", "testIngestHashPartitioned");
     conn = JsonAPIUtils.ingestData("localhost", masterDaemonPort, ingest(keyP, schema, source, delimiter,
-        new HashPartitionFunction(null, 1)));
+        new HashPartitionFunction(1)));
     assertEquals(conn.getResponseCode(), HttpURLConnection.HTTP_CREATED);
     status = getDatasetStatus(conn);
     pf = status.getHowPartitioned().getPf();
@@ -156,7 +156,7 @@ public class JsonQuerySubmitTest extends SystemTestBase {
     delimiter = ' ';
     RelationKey keyB = RelationKey.of("public", "adhoc", "testBroadcastPartitioned");
     conn = JsonAPIUtils.ingestData("localhost", masterDaemonPort, ingest(keyB, schema, source, delimiter,
-        new BroadcastPartitionFunction(2)));
+        new BroadcastPartitionFunction()));
     assertEquals(conn.getResponseCode(), HttpURLConnection.HTTP_CREATED);
     status = getDatasetStatus(conn);
     pf = status.getHowPartitioned().getPf();

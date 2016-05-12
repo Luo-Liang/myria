@@ -8,8 +8,7 @@ import edu.washington.escience.myria.operator.network.partition.PartitionFunctio
 import edu.washington.escience.myria.util.MyriaUtils;
 
 /**
- * A JSON-able wrapper for the expected wire message for a new dataset.
- * 
+ * JSON wrapper for ShuffleProducer.
  */
 public class ShuffleProducerEncoding extends AbstractProducerEncoding<GenericShuffleProducer> {
   @Required
@@ -19,9 +18,8 @@ public class ShuffleProducerEncoding extends AbstractProducerEncoding<GenericShu
   @Override
   public GenericShuffleProducer construct(final ConstructArgs args) {
     Set<Integer> workerIds = getRealWorkerIds();
-    argPf.setNumDestinations(workerIds.size());
-    GenericShuffleProducer producer = new GenericShuffleProducer(null, MyriaUtils.getSingleElement(
-        getRealOperatorIds()), MyriaUtils.integerSetToIntArray(workerIds), argPf);
+    GenericShuffleProducer producer = new GenericShuffleProducer(null, getRealOperatorIds().get(0), MyriaUtils
+        .integerSetToIntArray(workerIds), argPf);
     if (argBufferStateType != null) {
       producer.setBackupBuffer(argBufferStateType.construct());
     }

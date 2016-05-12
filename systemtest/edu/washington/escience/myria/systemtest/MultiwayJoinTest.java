@@ -72,8 +72,8 @@ public class MultiwayJoinTest extends SystemTestBase {
 
     /* Step 3: collect data from 2 workers */
     final ExchangePairID serverReceiveID = ExchangePairID.newID();
-    final ImmutableList<Type> outputTypes =
-        ImmutableList.of(Type.LONG_TYPE, Type.STRING_TYPE, Type.LONG_TYPE, Type.STRING_TYPE);
+    final ImmutableList<Type> outputTypes = ImmutableList.of(Type.LONG_TYPE, Type.STRING_TYPE, Type.LONG_TYPE,
+        Type.STRING_TYPE);
     final ImmutableList<String> outputColumnNames = ImmutableList.of("id1", "name1", "id2", "name2");
     final Schema outputSchema = new Schema(outputTypes, outputColumnNames);
     final RelationKey JOIN_TEST_RESULT = RelationKey.of("test", "test", "two_way_join_test");
@@ -82,8 +82,8 @@ public class MultiwayJoinTest extends SystemTestBase {
     final HashMap<Integer, RootOperator[]> workerPlans = new HashMap<Integer, RootOperator[]>();
     workerPlans.put(workerIDs[0], new RootOperator[] { cp1 });
     workerPlans.put(workerIDs[1], new RootOperator[] { cp1 });
-    final CollectConsumer serverCollect =
-        new CollectConsumer(outputSchema, serverReceiveID, new int[] { workerIDs[0], workerIDs[1] });
+    final CollectConsumer serverCollect = new CollectConsumer(outputSchema, serverReceiveID, new int[] {
+        workerIDs[0], workerIDs[1] });
     final LinkedBlockingQueue<TupleBatch> receivedTupleBatches = new LinkedBlockingQueue<TupleBatch>();
     final TBQueueExporter queueStore = new TBQueueExporter(receivedTupleBatches, serverCollect);
     SinkRoot serverPlan = new SinkRoot(queueStore);
@@ -189,24 +189,24 @@ public class MultiwayJoinTest extends SystemTestBase {
     final ExchangePairID serverReceiveID = ExchangePairID.newID();
     final ExchangePairID table1ShuffleID = ExchangePairID.newID();
     final ExchangePairID table2ShuffleID = ExchangePairID.newID();
-    final HashPartitionFunction pf = new HashPartitionFunction(2, 0);
+    final HashPartitionFunction pf = new HashPartitionFunction(0);
 
-    final ImmutableList<Type> outputTypes =
-        ImmutableList.of(Type.LONG_TYPE, Type.STRING_TYPE, Type.LONG_TYPE, Type.STRING_TYPE);
+    final ImmutableList<Type> outputTypes = ImmutableList.of(Type.LONG_TYPE, Type.STRING_TYPE, Type.LONG_TYPE,
+        Type.STRING_TYPE);
     final ImmutableList<String> outputColumnNames = ImmutableList.of("id1", "name1", "id2", "name2");
     final Schema outputSchema = new Schema(outputTypes, outputColumnNames);
 
     final DbQueryScan scan1 = new DbQueryScan(JOIN_TEST_TABLE_1, JOIN_INPUT_SCHEMA);
     final DbQueryScan scan2 = new DbQueryScan(JOIN_TEST_TABLE_2, JOIN_INPUT_SCHEMA);
 
-    final GenericShuffleProducer sp1 =
-        new GenericShuffleProducer(scan1, table1ShuffleID, new int[] { workerIDs[0], workerIDs[1] }, pf);
-    final GenericShuffleConsumer sc1 =
-        new GenericShuffleConsumer(sp1.getSchema(), table1ShuffleID, new int[] { workerIDs[0], workerIDs[1] });
-    final GenericShuffleProducer sp2 =
-        new GenericShuffleProducer(scan2, table2ShuffleID, new int[] { workerIDs[0], workerIDs[1] }, pf);
-    final GenericShuffleConsumer sc2 =
-        new GenericShuffleConsumer(sp2.getSchema(), table2ShuffleID, new int[] { workerIDs[0], workerIDs[1] });
+    final GenericShuffleProducer sp1 = new GenericShuffleProducer(scan1, table1ShuffleID, new int[] {
+        workerIDs[0], workerIDs[1] }, pf);
+    final GenericShuffleConsumer sc1 = new GenericShuffleConsumer(sp1.getSchema(), table1ShuffleID, new int[] {
+        workerIDs[0], workerIDs[1] });
+    final GenericShuffleProducer sp2 = new GenericShuffleProducer(scan2, table2ShuffleID, new int[] {
+        workerIDs[0], workerIDs[1] }, pf);
+    final GenericShuffleConsumer sc2 = new GenericShuffleConsumer(sp2.getSchema(), table2ShuffleID, new int[] {
+        workerIDs[0], workerIDs[1] });
 
     final InMemoryOrderBy o1 = new InMemoryOrderBy(sc1, new int[] { 0, 1 }, new boolean[] { true, true });
     final InMemoryOrderBy o2 = new InMemoryOrderBy(sc2, new int[] { 0, 1 }, new boolean[] { true, true });
@@ -214,17 +214,16 @@ public class MultiwayJoinTest extends SystemTestBase {
     int[][][] fieldMap = new int[][][] { { { 0, 0 }, { 1, 0 } } };
     int[][] outputMap = new int[][] { { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } };
 
-    final LeapFrogJoin localjoin =
-        new LeapFrogJoin(new Operator[] { o1, o2 }, fieldMap, outputMap, outputColumnNames, new boolean[] {
-            false, false });
+    final LeapFrogJoin localjoin = new LeapFrogJoin(new Operator[] { o1, o2 }, fieldMap, outputMap, outputColumnNames,
+        new boolean[] { false, false });
     localjoin.getSchema();
     final CollectProducer cp1 = new CollectProducer(localjoin, serverReceiveID, MASTER_ID);
     final HashMap<Integer, RootOperator[]> workerPlans = new HashMap<Integer, RootOperator[]>();
     workerPlans.put(workerIDs[0], new RootOperator[] { sp1, sp2, cp1 });
     workerPlans.put(workerIDs[1], new RootOperator[] { sp1, sp2, cp1 });
 
-    final CollectConsumer serverCollect =
-        new CollectConsumer(outputSchema, serverReceiveID, new int[] { workerIDs[0], workerIDs[1] });
+    final CollectConsumer serverCollect = new CollectConsumer(outputSchema, serverReceiveID, new int[] {
+        workerIDs[0], workerIDs[1] });
     final LinkedBlockingQueue<TupleBatch> receivedTupleBatches = new LinkedBlockingQueue<TupleBatch>();
     final TBQueueExporter queueStore = new TBQueueExporter(receivedTupleBatches, serverCollect);
     SinkRoot serverPlan = new SinkRoot(queueStore);

@@ -1,9 +1,6 @@
 package edu.washington.escience.myria.operator.network.partition;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import edu.washington.escience.myria.storage.TupleBatch;
 
@@ -18,13 +15,15 @@ public final class BroadcastPartitionFunction extends PartitionFunction {
   /** Always returns all destinations. */
   private int[] p = null;
 
-  /**
-   * @param numDestinations number of destinations.
-   */
-  public BroadcastPartitionFunction(@Nullable @JsonProperty("numDestinations") final Integer numDestinations) {
-    super(numDestinations);
-    p = new int[numDestinations()];
-    for (int i = 0; i < numDestinations(); ++i) {
+  /** */
+  public BroadcastPartitionFunction() {
+  }
+
+  @Override
+  public void setNumDestinations(final int numDestinations) {
+    this.numDestinations = numDestinations;
+    p = new int[numDestinations];
+    for (int i = 0; i < numDestinations; ++i) {
       p[i] = i;
     }
   }

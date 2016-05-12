@@ -18,8 +18,8 @@ import edu.washington.escience.myria.operator.network.CollectConsumer;
 import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
-import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 
@@ -37,22 +37,22 @@ public class AggregateQueryMonetDB implements QueryPlanGenerator {
   final ExchangePairID sendToMasterID = ExchangePairID.newID();
 
   @Override
-  public Map<Integer, RootOperator[]> getWorkerPlan(int[] allWorkers) throws Exception {
+  public Map<Integer, RootOperator[]> getWorkerPlan(final int[] allWorkers) throws Exception {
 
-    final DbQueryScan localGroupBy =
-        new DbQueryScan("select sourceIPAddr, SUM(adRevenue) from UserVisits group by sourceIPAddr", outputSchema);
+    final DbQueryScan localGroupBy = new DbQueryScan(
+        "select sourceIPAddr, SUM(adRevenue) from UserVisits group by sourceIPAddr", outputSchema);
 
     final ExchangePairID shuffleLocalGroupByID = ExchangePairID.newID();
 
-    PartitionFunction pf = new HashPartitionFunction(allWorkers.length, 0);
+    PartitionFunction pf = new HashPartitionFunction(0);
 
-    final GenericShuffleProducer shuffleLocalGroupBy =
-        new GenericShuffleProducer(localGroupBy, shuffleLocalGroupByID, allWorkers, pf);
-    final GenericShuffleConsumer sc =
-        new GenericShuffleConsumer(shuffleLocalGroupBy.getSchema(), shuffleLocalGroupByID, allWorkers);
+    final GenericShuffleProducer shuffleLocalGroupBy = new GenericShuffleProducer(localGroupBy, shuffleLocalGroupByID,
+        allWorkers, pf);
+    final GenericShuffleConsumer sc = new GenericShuffleConsumer(shuffleLocalGroupBy.getSchema(), shuffleLocalGroupByID,
+        allWorkers);
 
-    final SingleGroupByAggregate agg =
-        new SingleGroupByAggregate(sc, 0, new SingleColumnAggregatorFactory(1, AggregationOp.SUM));
+    final SingleGroupByAggregate agg = new SingleGroupByAggregate(sc, 0, new SingleColumnAggregatorFactory(1,
+        AggregationOp.SUM));
 
     final CollectProducer sendToMaster = new CollectProducer(agg, sendToMasterID, 0);
 
@@ -65,7 +65,7 @@ public class AggregateQueryMonetDB implements QueryPlanGenerator {
   }
 
   @Override
-  public SinkRoot getMasterPlan(int[] allWorkers, final LinkedBlockingQueue<TupleBatch> receivedTupleBatches) {
+  public SinkRoot getMasterPlan(final int[] allWorkers, final LinkedBlockingQueue<TupleBatch> receivedTupleBatches) {
     final CollectConsumer serverCollect = new CollectConsumer(outputSchema, sendToMasterID, allWorkers);
     SinkRoot serverPlan = new SinkRoot(serverCollect);
     return serverPlan;

@@ -21,6 +21,6 @@ public class CollectProducer extends GenericShuffleProducer {
    * @param collectConsumerWorkerID destination worker the data goes.
    */
   public CollectProducer(final Operator child, final ExchangePairID operatorID, final int collectConsumerWorkerID) {
-    super(child, operatorID, collectConsumerWorkerID, new SinglePartitionFunction());
+    super(child, operatorID, new int[] { collectConsumerWorkerID }, new SinglePartitionFunction());
   }
 }

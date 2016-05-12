@@ -7,9 +7,8 @@ import edu.washington.escience.myria.util.MyriaUtils;
 public class CollectProducerEncoding extends AbstractProducerEncoding<CollectProducer> {
 
   @Override
-  public CollectProducer construct(ConstructArgs args) {
-    return new CollectProducer(null, MyriaUtils.getSingleElement(getRealOperatorIds()), MyriaUtils
-        .getSingleElement(getRealWorkerIds()));
+  public CollectProducer construct(final ConstructArgs args) {
+    return new CollectProducer(null, getRealOperatorIds().get(0), MyriaUtils.getSingleElement(getRealWorkerIds()));
   }
 
 }

@@ -3,7 +3,6 @@ package edu.washington.escience.myria.operator.network.partition;
 import java.io.Serializable;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -35,16 +34,10 @@ public abstract class PartitionFunction implements Serializable {
    * numDestination-1.
    */
   @JsonProperty
-  private Integer numDestinations = null;
+  protected Integer numDestinations = null;
 
-  /**
-   * @param numDestinations see above. Note that this is a {@link Integer} not an {@link int} so that it can properly
-   *          handle <code>null</code> values, e.g., in JSON deserialization.
-   */
-  public PartitionFunction(@Nullable final Integer numDestinations) {
-    Preconditions.checkArgument((numDestinations == null) || (numDestinations > 0),
-        "numDestinations argument must be null or > 0");
-    this.numDestinations = numDestinations;
+  /** */
+  public PartitionFunction() {
   }
 
   /**
@@ -69,7 +62,7 @@ public abstract class PartitionFunction implements Serializable {
    * 
    * @param numDestinations the number of output destinations. Must be greater than 0.
    */
-  public final void setNumDestinations(final int numDestinations) {
+  public void setNumDestinations(final int numDestinations) {
     Preconditions.checkArgument(numDestinations > 0, "numDestinations must be > 0");
     this.numDestinations = numDestinations;
   }

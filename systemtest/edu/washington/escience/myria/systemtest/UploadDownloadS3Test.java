@@ -30,8 +30,8 @@ import edu.washington.escience.myria.operator.network.CollectConsumer;
 import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
-import edu.washington.escience.myria.operator.network.partition.RoundRobinPartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.RoundRobinPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.util.JsonAPIUtils;
 
@@ -49,7 +49,7 @@ public class UploadDownloadS3Test extends SystemTestBase {
     Schema relationSchema = Schema.ofFields("x", Type.INT_TYPE, "y", Type.INT_TYPE);
 
     JsonAPIUtils.ingestData("localhost", masterDaemonPort, ingest(relationKeyUpload, relationSchema, relationSource,
-        ' ', new RoundRobinPartitionFunction(workerIDs.length)));
+        ' ', new RoundRobinPartitionFunction()));
 
     /* File to upload and download */
     String fileName = String.format("s3://myria-test/test-%d.txt", System.currentTimeMillis());
@@ -75,11 +75,10 @@ public class UploadDownloadS3Test extends SystemTestBase {
 
     ExchangePairID workerReceiveID = ExchangePairID.newID();
     FileScan serverFileScan = new FileScan(relationSourceS3, relationSchema, ',', null, null, 1);
-    GenericShuffleProducer serverProduce =
-        new GenericShuffleProducer(serverFileScan, workerReceiveID, workerIDs, new HashPartitionFunction(
-            workerIDs.length, 0));
-    GenericShuffleConsumer workerConsumer =
-        new GenericShuffleConsumer(relationSchema, workerReceiveID, new int[] { MASTER_ID });
+    GenericShuffleProducer serverProduce = new GenericShuffleProducer(serverFileScan, workerReceiveID, workerIDs,
+        new HashPartitionFunction(0));
+    GenericShuffleConsumer workerConsumer = new GenericShuffleConsumer(relationSchema, workerReceiveID, new int[] {
+        MASTER_ID });
     DbInsert workerInsert = new DbInsert(workerConsumer, relationKeyDownload, true);
     Map<Integer, RootOperator[]> workerPlansInsert = new HashMap<Integer, RootOperator[]>();
     for (int workerID : workerIDs) {
@@ -87,9 +86,8 @@ public class UploadDownloadS3Test extends SystemTestBase {
     }
     server.submitQueryPlan(serverProduce, workerPlansInsert).get();
 
-    String dstData =
-        JsonAPIUtils.download("localhost", masterDaemonPort, relationKeyDownload.getUserName(), relationKeyDownload
-            .getProgramName(), relationKeyDownload.getRelationName(), "json");
+    String dstData = JsonAPIUtils.download("localhost", masterDaemonPort, relationKeyDownload.getUserName(),
+        relationKeyDownload.getProgramName(), relationKeyDownload.getRelationName(), "json");
 
     String srcData =
         "[{\"x\":1,\"y\":2},{\"x\":1,\"y\":2},{\"x\":1,\"y\":4},{\"x\":1,\"y\":4},{\"x\":1,\"y\":6},{\"x\":1,\"y\":6}]";

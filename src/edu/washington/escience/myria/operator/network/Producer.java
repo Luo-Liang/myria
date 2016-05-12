@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.jboss.netty.channel.ChannelFuture;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import edu.washington.escience.myria.DbException;
@@ -61,7 +62,7 @@ public abstract class Producer extends RootOperator {
   private int numOfChannels;
 
   /** operator IDs. */
-  private final ExchangePairID[] operatorIds;
+  private final List<ExchangePairID> operatorIds;
 
   /** destination worker IDs. */
   private final int[] destinationWorkerIds;
@@ -71,11 +72,11 @@ public abstract class Producer extends RootOperator {
    * @param operatorIds the operator IDs.
    * @param destinationWorkerIds the worker IDs.
    */
-  public Producer(final Operator child, final ExchangePairID[] operatorIds, final int[] destinationWorkerIds) {
+  protected Producer(final Operator child, final List<ExchangePairID> operatorIds, final int[] destinationWorkerIds) {
     super(child);
-    this.operatorIds = operatorIds;
+    this.operatorIds = ImmutableList.copyOf(operatorIds);
     this.destinationWorkerIds = destinationWorkerIds;
-    setNumOfChannels(operatorIds.length * destinationWorkerIds.length);
+    setNumOfChannels(operatorIds.size() * destinationWorkerIds.length);
   }
 
   @SuppressWarnings("unchecked")
@@ -128,7 +129,7 @@ public abstract class Producer extends RootOperator {
    */
   public void setBackupBuffer(final StreamingState state) {
     triedToSendTuples = new ArrayList<StreamingState>();
-    for (int i = 0; i < destinationWorkerIds.length * operatorIds.length; i++) {
+    for (int i = 0; i < getNumOfChannels(); i++) {
       triedToSendTuples.add(i, state.newInstanceFromMyself());
       triedToSendTuples.get(i).setAttachedOperator(this);
     }
@@ -270,7 +271,7 @@ public abstract class Producer extends RootOperator {
    */
   public void setSelfOutputId(final int myId) {
     if (outputIds == null) {
-      outputIds = new StreamIOChannelID[operatorIds.length * destinationWorkerIds.length];
+      outputIds = new StreamIOChannelID[getNumOfChannels()];
       int idx = 0;
       for (int wId : destinationWorkerIds) {
         for (ExchangePairID oId : operatorIds) {

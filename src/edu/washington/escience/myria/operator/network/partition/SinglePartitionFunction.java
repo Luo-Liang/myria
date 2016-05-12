@@ -19,7 +19,7 @@ public final class SinglePartitionFunction extends PartitionFunction {
 
   /** Constructor. */
   public SinglePartitionFunction() {
-    super(1);
+    super();
   }
 
   @Override

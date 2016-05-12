@@ -60,7 +60,7 @@ public class BroadcastTest extends SystemTestBase {
     /* Set producer */
     final DbQueryScan scan1 = new DbQueryScan(testtable1Key, schema);
     final GenericShuffleProducer bp = new GenericShuffleProducer(scan1, broadcastID, new int[] {
-        workerIDs[0], workerIDs[1] }, new BroadcastPartitionFunction(2));
+        workerIDs[0], workerIDs[1] }, new BroadcastPartitionFunction());
 
     /* Set consumer */
     final GenericShuffleConsumer bs = new GenericShuffleConsumer(schema, broadcastID, new int[] {

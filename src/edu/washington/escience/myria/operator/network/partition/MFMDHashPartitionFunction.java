@@ -49,7 +49,7 @@ public final class MFMDHashPartitionFunction extends PartitionFunction {
       @Nonnull @JsonProperty("hypercubeDimensions") final int[] hypercubeDimensions,
       @Nonnull @JsonProperty("hashedColumns") final int[] hashedColumns,
       @Nonnull @JsonProperty("mappedHCDimensions") final int[] mappedHCDimensions) {
-    super(null);
+    super();
     int[] arr = MyriaArrayUtils.arrayFlattenThenSort(cellPartition);
     for (int i = 0; i < arr.length; i++) {
       Preconditions.checkArgument(arr[i] == i, "invalid cell partition");
@@ -65,7 +65,8 @@ public final class MFMDHashPartitionFunction extends PartitionFunction {
       Preconditions.checkPositionIndex(hashedColumns[i], hypercubeDimensions.length);
       Preconditions.checkArgument(hashedColumns.length == mappedHCDimensions.length,
           "hashedColumns must have the same arity as mappedHCDimensions");
-      pfs[i] = new HashPartitionFunction(hypercubeDimensions[mappedHCDimensions[i]], new int[] { hashedColumns[i] });
+      pfs[i] = new HashPartitionFunction(hashedColumns[i]);
+      pfs[i].setNumDestinations(hypercubeDimensions[mappedHCDimensions[i]]);
       pfs[i].setSeedIndex(mappedHCDimensions[i]);
     }
   }
