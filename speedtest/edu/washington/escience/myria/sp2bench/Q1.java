@@ -19,7 +19,7 @@ import edu.washington.escience.myria.operator.network.CollectConsumer;
 import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 
@@ -60,7 +60,7 @@ public class Q1 implements QueryPlanGenerator {
             "select t.subject,dyear.val from Triples t, Dictionary dtype, Dictionary dyear where t.predicate=dtype.ID and dtype.val='dcterms:issued' and t.object=dyear.ID;",
             subjectYearSchema);
 
-    final SingleFieldHashPartitionFunction pf = new SingleFieldHashPartitionFunction(allWorkers.length, 0);
+    final HashPartitionFunction pf = new HashPartitionFunction(allWorkers.length, 0);
 
     final GenericShuffleProducer shuffleJournalsP =
         new GenericShuffleProducer(allJournals, allJournalsShuffleID, allWorkers, pf);

@@ -21,11 +21,10 @@ import edu.washington.escience.myria.storage.TupleBatch;
 @JsonSubTypes({
     @Type(value = BroadcastPartitionFunction.class, name = "Broadcast"),
     @Type(value = RoundRobinPartitionFunction.class, name = "RoundRobin"),
-    @Type(value = SinglePartitionFunction.class, name = "OnePartition"),
-    @Type(value = SingleFieldHashPartitionFunction.class, name = "SingleFieldHash"),
-    @Type(value = WorkerIdPartitionFunction.class, name = "IdentityHash"),
+    @Type(value = SinglePartitionFunction.class, name = "SinglePartition"),
+    @Type(value = WorkerIdPartitionFunction.class, name = "WorkerId"),
     @Type(value = MFMDHashPartitionFunction.class, name = "MFMD"),
-    @Type(value = MultiFieldHashPartitionFunction.class, name = "MultiFieldHash") })
+    @Type(value = HashPartitionFunction.class, name = "Hash") })
 public abstract class PartitionFunction implements Serializable {
 
   /** Required for Java serialization. */

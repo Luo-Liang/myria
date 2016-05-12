@@ -81,7 +81,7 @@
                                   "argChild":8,
                                   "opId":9,
                                   "argPf":{
-                                     "index":0,
+                                     "indexes":[0],
                                      "type":"IdentityHash"
                                   },
                                   "opType":"ShuffleProducer",

@@ -34,7 +34,7 @@ import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.LocalMultiwayConsumer;
 import edu.washington.escience.myria.operator.network.LocalMultiwayProducer;
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.storage.TupleBatchBuffer;
@@ -138,8 +138,8 @@ public class TransitiveClosureWithEOITest extends SystemTestBase {
     final DbQueryScan scan2 = new DbQueryScan(testtableKey, tableSchema);
 
     final int numPartition = 2;
-    final PartitionFunction pf0 = new SingleFieldHashPartitionFunction(numPartition, 0);
-    final PartitionFunction pf1 = new SingleFieldHashPartitionFunction(numPartition, 1);
+    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
+    final PartitionFunction pf1 = new HashPartitionFunction(numPartition, 1);
 
     ExchangePairID joinArray1ID = ExchangePairID.newID();
 
@@ -289,8 +289,8 @@ public class TransitiveClosureWithEOITest extends SystemTestBase {
         new EOSController(unionAll, new ExchangePairID[] { eosReceiverOpID }, new int[] { workerIDs[0] });
 
     final int numPartition = 1;
-    final PartitionFunction pf0 = new SingleFieldHashPartitionFunction(numPartition, 0);
-    final PartitionFunction pf1 = new SingleFieldHashPartitionFunction(numPartition, 1);
+    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
+    final PartitionFunction pf1 = new HashPartitionFunction(numPartition, 1);
     ExchangePairID joinArray1ID, joinArray2ID;
     joinArray1ID = ExchangePairID.newID();
     joinArray2ID = ExchangePairID.newID();

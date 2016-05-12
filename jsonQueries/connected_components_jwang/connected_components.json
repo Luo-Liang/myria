@@ -42,8 +42,8 @@
 				"opType" : "ShuffleProducer",
 				"argChild" : 20,
 				"argPf" : {
-					"type" : "SingleFieldHash",
-					"index" : 0
+					"type" : "Hash",
+					"indexes" : [0]
 				}
 			}
 			]
@@ -65,8 +65,8 @@
 				"opType" : "ShuffleProducer",
 				"argChild" : 19,
 				"argPf" : {
-					"type" : "SingleFieldHash",
-					"index" : 1
+					"type" : "Hash",
+					"indexes" : [1]
 				}
 			}
 			]
@@ -144,8 +144,8 @@
 				"opType" : "ShuffleProducer",
 				"argChild" : 11,
 				"argPf" : {
-					"type" : "SingleFieldHash",
-					"index" : 0
+					"type" : "Hash",
+					"indexes" : [0]
 				}
 			}
 			]

@@ -19,7 +19,7 @@ import edu.washington.escience.myria.operator.network.CollectConsumer;
 import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 
@@ -45,7 +45,7 @@ public class Q4 implements QueryPlanGenerator {
     final ExchangePairID allWithTitleShuffleID = ExchangePairID.newID();
     final ExchangePairID allIssuedYearShuffleID = ExchangePairID.newID();
 
-    final SingleFieldHashPartitionFunction pf = new SingleFieldHashPartitionFunction(allWorkers.length, 0);
+    final HashPartitionFunction pf = new HashPartitionFunction(allWorkers.length, 0);
 
     final ImmutableList<Type> subjectYearTypes = ImmutableList.of(Type.LONG_TYPE, Type.STRING_TYPE);
     final ImmutableList<String> subjectYearColumnNames = ImmutableList.of("subject", "year");

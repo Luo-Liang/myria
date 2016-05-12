@@ -34,7 +34,7 @@ import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.systemtest.SystemTestBase;
@@ -87,11 +87,11 @@ public class TwitterJoinSpeedTest extends SystemTestBase {
      */
     final int numPartition = 2;
     // PF0 : follower (field 0 of the tuple)
-    final PartitionFunction pf0 = new SingleFieldHashPartitionFunction(numPartition, 0);
+    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
     final ExchangePairID arrayID1 = ExchangePairID.newID();
     final GenericShuffleProducer sp1 = new GenericShuffleProducer(scan1, arrayID1, workerIDs, pf0);
     // PF1 : followee (field 1 of the tuple)
-    final PartitionFunction pf1 = new SingleFieldHashPartitionFunction(numPartition, 1);
+    final PartitionFunction pf1 = new HashPartitionFunction(numPartition, 1);
     final ExchangePairID arrayID2 = ExchangePairID.newID();
     final GenericShuffleProducer sp2 = new GenericShuffleProducer(scan2, arrayID2, workerIDs, pf1);
 
@@ -152,11 +152,11 @@ public class TwitterJoinSpeedTest extends SystemTestBase {
      */
     final int numPartition = 2;
     // PF0 : follower (field 0 of the tuple)
-    final PartitionFunction pf0 = new SingleFieldHashPartitionFunction(numPartition, 0);
+    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
     final ExchangePairID arrayID1 = ExchangePairID.newID();
     final GenericShuffleProducer sp1 = new GenericShuffleProducer(scan1, arrayID1, workerIDs, pf0);
     // PF1 : followee (field 1 of the tuple)
-    final PartitionFunction pf1 = new SingleFieldHashPartitionFunction(numPartition, 1);
+    final PartitionFunction pf1 = new HashPartitionFunction(numPartition, 1);
     final ExchangePairID arrayID2 = ExchangePairID.newID();
     final GenericShuffleProducer sp2 = new GenericShuffleProducer(scan2, arrayID2, workerIDs, pf1);
 
@@ -214,11 +214,11 @@ public class TwitterJoinSpeedTest extends SystemTestBase {
      */
     final int numPartition = 2;
     // PF0 : follower (field 0 of the tuple)
-    final PartitionFunction pf0 = new SingleFieldHashPartitionFunction(numPartition, 0);
+    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
     final ExchangePairID arrayID1 = ExchangePairID.newID();
     final GenericShuffleProducer sp1 = new GenericShuffleProducer(scan1, arrayID1, workerIDs, pf0);
     // PF1 : followee (field 1 of the tuple)
-    final PartitionFunction pf1 = new SingleFieldHashPartitionFunction(numPartition, 1);
+    final PartitionFunction pf1 = new HashPartitionFunction(numPartition, 1);
     final ExchangePairID arrayID2 = ExchangePairID.newID();
     final GenericShuffleProducer sp2 = new GenericShuffleProducer(scan2, arrayID2, workerIDs, pf1);
 

@@ -27,7 +27,7 @@ import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.storage.TupleBatchBuffer;
@@ -199,7 +199,7 @@ public class MultithreadScanTest extends SystemTestBase {
     final StreamingStateWrapper de2 = new StreamingStateWrapper(localjoin2, new DupElim());
 
     final int numPartition = 2;
-    final PartitionFunction pf0 = new SingleFieldHashPartitionFunction(numPartition, 0); // 2 workers
+    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0); // 2 workers
 
     ExchangePairID arrayID1, arrayID2;
     arrayID1 = ExchangePairID.newID();

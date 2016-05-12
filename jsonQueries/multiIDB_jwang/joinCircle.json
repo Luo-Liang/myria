@@ -62,8 +62,8 @@
                 {
                     "argChild": 6,
                     "argPf": {
-                        "index": "0",
-                        "type": "SingleFieldHash"
+                        "indexes": [0],
+                        "type": "Hash"
                     },
                     "opId": 7,
                     "opType": "ShuffleProducer"
@@ -139,8 +139,8 @@
                 {
                     "argChild": 15,
                     "argPf": {
-                        "index": "0",
-                        "type": "SingleFieldHash"
+                        "indexes": [0],
+                        "type": "Hash"
                     },
                     "opId": 16,
                     "opType": "ShuffleProducer"
@@ -157,8 +157,8 @@
                 {
                     "argChild": 17,
                     "argPf": {
-                        "index": "1",
-                        "type": "SingleFieldHash"
+                        "indexes": [1],
+                        "type": "Hash"
                     },
                     "opId": 18,
                     "opType": "ShuffleProducer"
@@ -179,8 +179,8 @@
                 {
                     "argChild": 19,
                     "argPf": {
-                        "index": "0",
-                        "type": "SingleFieldHash"
+                        "indexes": [0],
+                        "type": "Hash"
                     },
                     "opId": 20,
                     "opType": "ShuffleProducer"
@@ -256,8 +256,8 @@
                 {
                     "argChild": 28,
                     "argPf": {
-                        "index": "0",
-                        "type": "SingleFieldHash"
+                        "indexes": [0],
+                        "type": "Hash"
                     },
                     "opId": 29,
                     "opType": "ShuffleProducer"
@@ -274,8 +274,8 @@
                 {
                     "argChild": 30,
                     "argPf": {
-                        "index": "1",
-                        "type": "SingleFieldHash"
+                        "indexes": [1],
+                        "type": "Hash"
                     },
                     "opId": 31,
                     "opType": "ShuffleProducer"
@@ -296,8 +296,8 @@
                 {
                     "argChild": 32,
                     "argPf": {
-                        "index": "0",
-                        "type": "SingleFieldHash"
+                        "indexes": [0],
+                        "type": "Hash"
                     },
                     "opId": 33,
                     "opType": "ShuffleProducer"
@@ -373,8 +373,8 @@
                 {
                     "argChild": 41,
                     "argPf": {
-                        "index": "0",
-                        "type": "SingleFieldHash"
+                        "indexes": [0],
+                        "type": "Hash"
                     },
                     "opId": 42,
                     "opType": "ShuffleProducer"
@@ -391,8 +391,8 @@
                 {
                     "argChild": 43,
                     "argPf": {
-                        "index": "1",
-                        "type": "SingleFieldHash"
+                        "indexes": [1],
+                        "type": "Hash"
                     },
                     "opId": 44,
                     "opType": "ShuffleProducer"

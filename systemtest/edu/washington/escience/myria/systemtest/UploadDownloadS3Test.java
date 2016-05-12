@@ -31,7 +31,7 @@ import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.partition.RoundRobinPartitionFunction;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.util.JsonAPIUtils;
 
@@ -76,7 +76,7 @@ public class UploadDownloadS3Test extends SystemTestBase {
     ExchangePairID workerReceiveID = ExchangePairID.newID();
     FileScan serverFileScan = new FileScan(relationSourceS3, relationSchema, ',', null, null, 1);
     GenericShuffleProducer serverProduce =
-        new GenericShuffleProducer(serverFileScan, workerReceiveID, workerIDs, new SingleFieldHashPartitionFunction(
+        new GenericShuffleProducer(serverFileScan, workerReceiveID, workerIDs, new HashPartitionFunction(
             workerIDs.length, 0));
     GenericShuffleConsumer workerConsumer =
         new GenericShuffleConsumer(relationSchema, workerReceiveID, new int[] { MASTER_ID });

@@ -23,10 +23,9 @@ public final class HashUtils {
 
   /** The hash functions. */
   private static final HashFunction[] HASH_FUNCTIONS = {
-      Hashing.murmur3_128(SEEDS[0]), Hashing.murmur3_128(SEEDS[1]), Hashing.murmur3_128(SEEDS[2]),
-      Hashing.murmur3_128(SEEDS[3]), Hashing.murmur3_128(SEEDS[4]), Hashing.murmur3_128(SEEDS[5]),
-      Hashing.murmur3_128(SEEDS[6]), Hashing.murmur3_128(SEEDS[7]), Hashing.murmur3_128(SEEDS[8]),
-      Hashing.murmur3_128(SEEDS[9]) };
+      Hashing.murmur3_128(SEEDS[0]), Hashing.murmur3_128(SEEDS[1]), Hashing.murmur3_128(SEEDS[2]), Hashing.murmur3_128(
+          SEEDS[3]), Hashing.murmur3_128(SEEDS[4]), Hashing.murmur3_128(SEEDS[5]), Hashing.murmur3_128(SEEDS[6]),
+      Hashing.murmur3_128(SEEDS[7]), Hashing.murmur3_128(SEEDS[8]), Hashing.murmur3_128(SEEDS[9]) };
 
   /**
    * Size of the hash function pool.
@@ -87,9 +86,23 @@ public final class HashUtils {
    * @return the hash code of the specified columns in the specified row of the given table
    */
   public static int hashSubRow(final ReadableTable table, final int[] hashColumns, final int row) {
+    return hashSubRow(table, hashColumns, row, 0);
+  }
+
+  /**
+   * Compute the hash code of the specified columns in the specified row of the given table.
+   * 
+   * @param table the table containing the values to be hashed
+   * @param hashColumns the columns to be hashed. Order matters
+   * @param row the row containing the values to be hashed
+   * @param seedIndex the index of the chosen hashcode
+   * @return the hash code of the specified columns in the specified row of the given table
+   */
+  public static int hashSubRow(final ReadableTable table, final int[] hashColumns, final int row, final int seedIndex) {
     Objects.requireNonNull(table, "table");
     Objects.requireNonNull(hashColumns, "hashColumns");
-    Hasher hasher = HASH_FUNCTIONS[0].newHasher();
+    Preconditions.checkPositionIndex(seedIndex, NUM_OF_HASHFUNCTIONS);
+    Hasher hasher = HASH_FUNCTIONS[seedIndex].newHasher();
     for (int column : hashColumns) {
       addValue(hasher, table, column, row);
     }

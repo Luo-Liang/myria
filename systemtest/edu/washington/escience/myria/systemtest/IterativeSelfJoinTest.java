@@ -26,7 +26,7 @@ import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.storage.TupleBatchBuffer;
@@ -148,8 +148,8 @@ public class IterativeSelfJoinTest extends SystemTestBase {
     final DbQueryScan scan2 = new DbQueryScan(testtableKeys.get(0), tableSchema);
 
     final int numPartition = 2;
-    final PartitionFunction pf0 = new SingleFieldHashPartitionFunction(numPartition, 0);
-    final PartitionFunction pf1 = new SingleFieldHashPartitionFunction(numPartition, 1);
+    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
+    final PartitionFunction pf1 = new HashPartitionFunction(numPartition, 1);
 
     ArrayList<RootOperator> subqueries = new ArrayList<RootOperator>();
     final GenericShuffleProducer sp0[] = new GenericShuffleProducer[numIteration];

@@ -35,7 +35,7 @@ import edu.washington.escience.myria.operator.network.CollectConsumer;
 import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.storage.TupleBatchBuffer;
@@ -189,7 +189,7 @@ public class MultiwayJoinTest extends SystemTestBase {
     final ExchangePairID serverReceiveID = ExchangePairID.newID();
     final ExchangePairID table1ShuffleID = ExchangePairID.newID();
     final ExchangePairID table2ShuffleID = ExchangePairID.newID();
-    final SingleFieldHashPartitionFunction pf = new SingleFieldHashPartitionFunction(2, 0);
+    final HashPartitionFunction pf = new HashPartitionFunction(2, 0);
 
     final ImmutableList<Type> outputTypes =
         ImmutableList.of(Type.LONG_TYPE, Type.STRING_TYPE, Type.LONG_TYPE, Type.STRING_TYPE);

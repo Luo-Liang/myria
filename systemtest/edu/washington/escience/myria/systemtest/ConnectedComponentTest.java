@@ -45,7 +45,7 @@ import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.LocalMultiwayConsumer;
 import edu.washington.escience.myria.operator.network.LocalMultiwayProducer;
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.parallel.Query;
 import edu.washington.escience.myria.parallel.SubQueryPlan;
@@ -104,8 +104,8 @@ public class ConnectedComponentTest extends SystemTestBase {
       final ExchangePairID eoiReceiverOpId, final ExchangePairID eosReceiverOpId, final ExchangePairID serverOpId,
       final boolean prioritized) {
     final int numPartition = 2;
-    final PartitionFunction pf0 = new SingleFieldHashPartitionFunction(numPartition, 0);
-    final PartitionFunction pf1 = new SingleFieldHashPartitionFunction(numPartition, 1);
+    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
+    final PartitionFunction pf1 = new HashPartitionFunction(numPartition, 1);
 
     // the query plan
     final DbQueryScan scan1 = new DbQueryScan(RelationKey.of("test", "test", "c"), table1Schema);

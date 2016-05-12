@@ -231,8 +231,8 @@ if args.run_filename:
       "opId": "SP1",
       "opType": "ShuffleProducer",
       "argPf": {
-        "index": 1,
-        "type": "SingleFieldHash"
+        "indexes": [1],
+        "type": "Hash"
       }
     }
 
@@ -254,8 +254,8 @@ if args.run_filename:
       "opId": "SP2",
       "opType": "ShuffleProducer",
       "argPf": {
-        "index": 1,
-        "type": "SingleFieldHash"
+        "indexes": [1],
+        "type": "Hash"
       }
     }
  

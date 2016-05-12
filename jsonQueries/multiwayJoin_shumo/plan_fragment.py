@@ -153,8 +153,8 @@ def scan_R_then_partition():
         "argOperatorId" : "hash(followee)",
         "argPf" : 
             {
-                "type" : "SingleFieldHash",
-                "index" : 1
+                "type" : "Hash",
+                "indexes" : [1]
             }        
     }  
     fragment = {
@@ -177,8 +177,8 @@ def scan_S_then_partition():
         "argOperatorId" : "hash(follower)",
         "argPf" : 
             {
-                "type" : "SingleFieldHash",
-                "index" : 0
+                "type" : "Hash",
+                "indexes" : [0]
             }        
     }
     fragment = {

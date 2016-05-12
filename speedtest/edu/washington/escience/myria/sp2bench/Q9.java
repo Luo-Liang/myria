@@ -25,7 +25,7 @@ import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.LocalMultiwayConsumer;
 import edu.washington.escience.myria.operator.network.LocalMultiwayProducer;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 
@@ -46,7 +46,7 @@ public class Q9 implements QueryPlanGenerator {
     final ExchangePairID allTriplesOutLocalMultiWayID = ExchangePairID.newID();
     final ExchangePairID allTriplesInLocalMultiWayID = ExchangePairID.newID();
 
-    final SingleFieldHashPartitionFunction pfOn0 = new SingleFieldHashPartitionFunction(allWorkers.length, 0);
+    final HashPartitionFunction pfOn0 = new HashPartitionFunction(allWorkers.length, 0);
 
     final DbQueryScan allPersons = new DbQueryScan(//
         "SELECT distinct t.subject AS person FROM Triples t " + //

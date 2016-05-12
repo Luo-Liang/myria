@@ -21,7 +21,7 @@ import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.parallel.ipc.IPCConnectionPool;
 import edu.washington.escience.myria.storage.TupleBatch;
@@ -43,9 +43,9 @@ public class AggregateQueryVariantMonetDBMyriaSubStr implements QueryPlanGenerat
 
     final int NUM_LOCAL_TASKS = 5;
 
-    PartitionFunction pf0 = new SingleFieldHashPartitionFunction(allWorkers.length, 0);
+    PartitionFunction pf0 = new HashPartitionFunction(allWorkers.length, 0);
 
-    PartitionFunction pfLocal0 = new SingleFieldHashPartitionFunction(NUM_LOCAL_TASKS, 0);
+    PartitionFunction pfLocal0 = new HashPartitionFunction(NUM_LOCAL_TASKS, 0);
 
     ExchangePairID[] localShuffleIDs = new ExchangePairID[NUM_LOCAL_TASKS];
     for (int i = 0; i < localShuffleIDs.length; i++) {

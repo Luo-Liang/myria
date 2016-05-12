@@ -18,7 +18,7 @@
                             "0",
                             "1"
                         ],
-                        "type": "MultiFieldHash"
+                        "type": "Hash"
                     },
                     "opId": 3,
                     "opType": "ShuffleProducer"
@@ -48,7 +48,7 @@
                             "0",
                             "1"
                         ],
-                        "type": "MultiFieldHash"
+                        "type": "Hash"
                     },
                     "opId": 7,
                     "opType": "ShuffleProducer"

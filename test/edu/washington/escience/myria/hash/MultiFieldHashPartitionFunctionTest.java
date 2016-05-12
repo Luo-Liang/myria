@@ -14,7 +14,7 @@ import edu.washington.escience.myria.DbException;
 import edu.washington.escience.myria.Schema;
 import edu.washington.escience.myria.Type;
 import edu.washington.escience.myria.operator.TupleSource;
-import edu.washington.escience.myria.operator.network.partition.MultiFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.storage.TupleBatchBuffer;
 
@@ -30,7 +30,7 @@ public class MultiFieldHashPartitionFunctionTest {
 
   @Test
   public void testMultiFieldPartitionFunction() {
-    MultiFieldHashPartitionFunction multiFieldPartitionFunction = new MultiFieldHashPartitionFunction(NUM_PARTITIONS,
+    HashPartitionFunction multiFieldPartitionFunction = new HashPartitionFunction(NUM_PARTITIONS,
         new int[] { 0, 1 });
     int numGroups = rand.nextInt(10) + 1;
     int tuplesPerGroup = rand.nextInt(10) + 1;

@@ -91,8 +91,8 @@
           "opName": "MyriaShuffleProducer(h($1))",
           "opId": 4,
           "argPf": {
-            "type": "SingleFieldHash",
-            "index": 1
+            "type": "Hash",
+            "indexes": [1]
           },
           "opType": "ShuffleProducer",
           "argChild": 7
@@ -135,8 +135,8 @@
           "opName": "MyriaShuffleProducer(h($0))",
           "opId": 2,
           "argPf": {
-            "type": "SingleFieldHash",
-            "index": 0
+            "type": "Hash",
+            "indexes": [0]
           },
           "opType": "ShuffleProducer",
           "argChild": 9

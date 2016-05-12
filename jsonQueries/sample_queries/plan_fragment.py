@@ -54,7 +54,7 @@ def repartition_on_x():
         'argChild' : 'Scan',
         'argOperatorId' : 'hash(follower)',
         'argPf' : {
-            'type' : 'SingleFieldHash',
+            'type' : 'Hash',
             'index' : 0
         }
     }
@@ -108,7 +108,7 @@ def single_join():
         'argChild' : 'Scan0',
         'argOperatorId' : 'hash(x)',
         'argPf' : {
-            'type' : 'SingleFieldHash',
+            'type' : 'Hash',
             'index' : 0
         }
     }
@@ -137,7 +137,7 @@ def single_join():
         'argChild' : 'Scan1',
         'argOperatorId' : 'hash(y)',
         'argPf' : {
-            'type' : 'SingleFieldHash',
+            'type' : 'Hash',
             'index' : 1
         }
     }
@@ -269,7 +269,7 @@ def ingest_tipsy_hash_iorder():
         'argChild' : 'Scan',
         'argOperatorId' : 'hash(iorder)',
         'argPf' : {
-            'type' : 'SingleFieldHash',
+            'type' : 'Hash',
             'index' : 0
         }
     }

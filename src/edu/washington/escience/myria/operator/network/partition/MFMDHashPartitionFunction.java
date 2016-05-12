@@ -18,7 +18,7 @@ public final class MFMDHashPartitionFunction extends PartitionFunction {
   /**
    * Partition functions on different dimensions.
    */
-  private final SingleFieldHashPartitionFunction[] pfs;
+  private final HashPartitionFunction[] pfs;
 
   /**
    * mappings from cells to partitions.
@@ -38,13 +38,13 @@ public final class MFMDHashPartitionFunction extends PartitionFunction {
       final int[] hashedColumns, final int[] mappedHCDimensions) {
     super(numCells);
     this.cellPartition = cellPartition;
-    pfs = new SingleFieldHashPartitionFunction[hashedColumns.length];
+    pfs = new HashPartitionFunction[hashedColumns.length];
     for (int i = 0; i < hashedColumns.length; ++i) {
       Preconditions.checkPositionIndex(hashedColumns[i], hypercubeDimensions.length);
       Preconditions.checkArgument(hashedColumns.length == mappedHCDimensions.length,
           "hashedColumns must have the same arity as mappedHCDimensions");
-      pfs[i] = new SingleFieldHashPartitionFunction(hypercubeDimensions[mappedHCDimensions[i]], hashedColumns[i],
-          mappedHCDimensions[i]);
+      pfs[i] = new HashPartitionFunction(hypercubeDimensions[mappedHCDimensions[i]], new int[] { hashedColumns[i] });
+      pfs[i].setSeedIndex(mappedHCDimensions[i]);
     }
   }
 

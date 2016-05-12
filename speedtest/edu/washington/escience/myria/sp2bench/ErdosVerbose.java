@@ -24,7 +24,7 @@ import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.Producer;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 
@@ -45,7 +45,7 @@ public class ErdosVerbose {
   final static ExchangePairID sendToMasterID = ExchangePairID.newID();
 
   public static StreamingStateWrapper erdosOne(int[] allWorkers, ArrayList<Producer> producers) throws DbException {
-    final SingleFieldHashPartitionFunction pfOn0 = new SingleFieldHashPartitionFunction(allWorkers.length, 0);
+    final HashPartitionFunction pfOn0 = new HashPartitionFunction(allWorkers.length, 0);
 
     final ExchangePairID paulErdoesPubsShuffleID = ExchangePairID.newID();
     final ExchangePairID coAuthorShuffleID = ExchangePairID.newID();
@@ -108,8 +108,8 @@ public class ErdosVerbose {
   public static StreamingStateWrapper erdosN(StreamingStateWrapper erdosNMinus1, int[] allWorkers,
       ArrayList<Producer> producers) throws DbException {
 
-    final SingleFieldHashPartitionFunction pfOn0 = new SingleFieldHashPartitionFunction(allWorkers.length, 0);
-    final SingleFieldHashPartitionFunction pfOn1 = new SingleFieldHashPartitionFunction(allWorkers.length, 1);
+    final HashPartitionFunction pfOn0 = new HashPartitionFunction(allWorkers.length, 0);
+    final HashPartitionFunction pfOn1 = new HashPartitionFunction(allWorkers.length, 1);
 
     final DbQueryScan allPubs2 = new DbQueryScan(//
         "select pubName.val, authorName.val " + //

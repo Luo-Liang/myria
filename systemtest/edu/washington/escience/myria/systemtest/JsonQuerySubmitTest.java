@@ -42,9 +42,9 @@ import edu.washington.escience.myria.io.DataSource;
 import edu.washington.escience.myria.io.EmptySource;
 import edu.washington.escience.myria.io.FileSource;
 import edu.washington.escience.myria.operator.network.partition.BroadcastPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.RoundRobinPartitionFunction;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
 import edu.washington.escience.myria.parallel.SocketInfo;
 import edu.washington.escience.myria.util.JsonAPIUtils;
 import edu.washington.escience.myria.util.TestUtils;
@@ -142,14 +142,14 @@ public class JsonQuerySubmitTest extends SystemTestBase {
     delimiter = ' ';
     RelationKey keyP = RelationKey.of("public", "adhoc", "testIngestHashPartitioned");
     conn = JsonAPIUtils.ingestData("localhost", masterDaemonPort, ingest(keyP, schema, source, delimiter,
-        new SingleFieldHashPartitionFunction(null, 1)));
+        new HashPartitionFunction(null, 1)));
     assertEquals(conn.getResponseCode(), HttpURLConnection.HTTP_CREATED);
     status = getDatasetStatus(conn);
     pf = status.getHowPartitioned().getPf();
     /* specified, should be SingleField with index = 1. */
     assertEquals(2, pf.numDestinations());
-    assertTrue(pf instanceof SingleFieldHashPartitionFunction);
-    assertEquals(1, ((SingleFieldHashPartitionFunction) pf).getIndex());
+    assertTrue(pf instanceof HashPartitionFunction);
+    assertEquals(1, ((HashPartitionFunction) pf).getIndexes()[0]);
     conn.disconnect();
 
     /* Broadcast. */
@@ -190,8 +190,8 @@ public class JsonQuerySubmitTest extends SystemTestBase {
     DatasetStatus datasetStatus = getDatasetStatus(conn);
     PartitionFunction pf = datasetStatus.getHowPartitioned().getPf();
     assertEquals(2, pf.numDestinations());
-    assertTrue(pf instanceof SingleFieldHashPartitionFunction);
-    assertEquals(0, ((SingleFieldHashPartitionFunction) pf).getIndex());
+    assertTrue(pf instanceof HashPartitionFunction);
+    assertEquals(0, ((HashPartitionFunction) pf).getIndexes()[0]);
     conn.disconnect();
 
     String data = JsonAPIUtils.download("localhost", masterDaemonPort, "jwang", "global_join", "smallTable", "json");

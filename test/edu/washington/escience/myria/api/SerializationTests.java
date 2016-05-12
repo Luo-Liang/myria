@@ -9,10 +9,9 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
-import edu.washington.escience.myria.operator.network.partition.MultiFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
 import edu.washington.escience.myria.operator.network.partition.RoundRobinPartitionFunction;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
 
 public class SerializationTests {
 
@@ -32,22 +31,22 @@ public class SerializationTests {
     PartitionFunction deserialized;
 
     /* Single field hash */
-    pf = new SingleFieldHashPartitionFunction(5, 3);
+    pf = new HashPartitionFunction(5, 3);
     serialized = mapper.writeValueAsString(pf);
     deserialized = reader.readValue(serialized);
     assertEquals(pf.getClass(), deserialized.getClass());
     assertEquals(5, deserialized.numDestinations());
-    SingleFieldHashPartitionFunction pfSFH = (SingleFieldHashPartitionFunction) deserialized;
-    assertEquals(3, pfSFH.getIndex());
+    HashPartitionFunction pfSFH = (HashPartitionFunction) deserialized;
+    assertEquals(3, pfSFH.getIndexes()[0]);
 
     /* Multi-field hash */
     int[] multiFieldIndex = new int[] { 3, 4, 2 };
-    pf = new MultiFieldHashPartitionFunction(5, multiFieldIndex);
+    pf = new HashPartitionFunction(5, multiFieldIndex);
     serialized = mapper.writeValueAsString(pf);
     deserialized = reader.readValue(serialized);
     assertEquals(pf.getClass(), deserialized.getClass());
     assertEquals(5, deserialized.numDestinations());
-    MultiFieldHashPartitionFunction pfMFH = (MultiFieldHashPartitionFunction) deserialized;
+    HashPartitionFunction pfMFH = (HashPartitionFunction) deserialized;
     assertArrayEquals(multiFieldIndex, pfMFH.getIndexes());
 
     /* RoundRobin */
@@ -67,11 +66,11 @@ public class SerializationTests {
     PartitionFunction deserialized;
 
     /* Single field hash, as one representative */
-    pf = new SingleFieldHashPartitionFunction(null, 3);
+    pf = new HashPartitionFunction(null, 3);
     serialized = mapper.writeValueAsString(pf);
     deserialized = reader.readValue(serialized);
     assertEquals(pf.getClass(), deserialized.getClass());
-    assertEquals(3, ((SingleFieldHashPartitionFunction) deserialized).getIndex());
+    assertEquals(3, ((HashPartitionFunction) deserialized).getIndexes()[0]);
   }
 
 }

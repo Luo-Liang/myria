@@ -41,7 +41,7 @@ import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.LocalMultiwayConsumer;
 import edu.washington.escience.myria.operator.network.LocalMultiwayProducer;
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.parallel.QueryFuture;
 import edu.washington.escience.myria.parallel.SubQueryPlan;
@@ -63,7 +63,7 @@ public class IDBSyncModeTest extends SystemTestBase {
     final int numPartition = 2;
     final ExchangePairID mpId1 = ExchangePairID.newID();
     final ExchangePairID mpId2 = ExchangePairID.newID();
-    final PartitionFunction pf0 = new SingleFieldHashPartitionFunction(numPartition, 0);
+    final PartitionFunction pf0 = new HashPartitionFunction(numPartition, 0);
 
     final DbQueryScan scan1 = new DbQueryScan(RelationKey.of("test", "test", "r"), table1Schema);
     final DelayInjector di = new DelayInjector(delayPerTuple, TimeUnit.MILLISECONDS, scan1);

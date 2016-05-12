@@ -24,7 +24,7 @@ import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.storage.TupleBatch;
 
@@ -65,7 +65,7 @@ public class JoinQueryPostgres implements QueryPlanGenerator, Serializable {
     // final ExchangePairID globalAggID = ExchangePairID.newID();
 
     // shuffle by destURL to get pageRanks
-    PartitionFunction pf = new SingleFieldHashPartitionFunction(allWorkers.length, 0);
+    PartitionFunction pf = new HashPartitionFunction(allWorkers.length, 0);
 
     final GenericShuffleProducer spLocalScan = new GenericShuffleProducer(localScan, localScanID, allWorkers, pf);
     final GenericShuffleConsumer scLocalScan =

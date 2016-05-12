@@ -60,7 +60,7 @@ import edu.washington.escience.myria.operator.network.CollectProducer;
 import edu.washington.escience.myria.operator.network.GenericShuffleConsumer;
 import edu.washington.escience.myria.operator.network.GenericShuffleProducer;
 import edu.washington.escience.myria.operator.network.partition.PartitionFunction;
-import edu.washington.escience.myria.operator.network.partition.SingleFieldHashPartitionFunction;
+import edu.washington.escience.myria.operator.network.partition.HashPartitionFunction;
 import edu.washington.escience.myria.parallel.ExchangePairID;
 import edu.washington.escience.myria.parallel.Query;
 import edu.washington.escience.myria.parallel.QueryFuture;
@@ -82,7 +82,7 @@ public class SequenceTest extends SystemTestBase {
     TupleSource source = new TupleSource(TestUtils.range(numVals).getAll());
     Schema testSchema = source.getSchema();
     RelationKey storage = RelationKey.of("test", "testi", "step1");
-    PartitionFunction pf = new SingleFieldHashPartitionFunction(workerIDs.length, 0);
+    PartitionFunction pf = new HashPartitionFunction(workerIDs.length, 0);
 
     QueryPlan first = TestUtils.insertRelation(source, storage, pf, workerIDs);
 
@@ -133,7 +133,7 @@ public class SequenceTest extends SystemTestBase {
 
     ExchangePairID shuffleId = ExchangePairID.newID();
     final GenericShuffleProducer sp =
-        new GenericShuffleProducer(source, shuffleId, workerIDs, new SingleFieldHashPartitionFunction(workerIDs.length,
+        new GenericShuffleProducer(source, shuffleId, workerIDs, new HashPartitionFunction(workerIDs.length,
             0));
 
     final GenericShuffleConsumer cc = new GenericShuffleConsumer(testSchema, shuffleId, workerIDs);
@@ -336,7 +336,7 @@ public class SequenceTest extends SystemTestBase {
       TupleSource source = new TupleSource(data.getAll());
       ExchangePairID shuffleId = ExchangePairID.newID();
       final GenericShuffleProducer sp =
-          new GenericShuffleProducer(source, shuffleId, workerIDs, new SingleFieldHashPartitionFunction(
+          new GenericShuffleProducer(source, shuffleId, workerIDs, new HashPartitionFunction(
               workerIDs.length, 0));
 
       final GenericShuffleConsumer cc = new GenericShuffleConsumer(schema, shuffleId, workerIDs);
