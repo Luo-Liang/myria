@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.annotation.Nonnull;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -62,6 +63,7 @@ public abstract class PartitionFunction implements Serializable {
    * 
    * @param numDestinations the number of output destinations. Must be greater than 0.
    */
+  @JsonIgnore
   public void setNumDestinations(final int numDestinations) {
     Preconditions.checkArgument(numDestinations > 0, "numDestinations must be > 0");
     this.numDestinations = numDestinations;
