@@ -90,7 +90,7 @@ def _get_workers(hostnames, ports=None, base_port=8001,
     workers = '[workers]\n'
 
     if not ports:
-        hostnames = sorted(hostnames)
+        # hostnames = sorted(hostnames)
         ports = [offset + base_port
                  for hostname, group in groupby(hostnames)
                  for offset in xrange(len(list(group)))]
