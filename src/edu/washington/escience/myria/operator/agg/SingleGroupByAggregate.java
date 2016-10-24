@@ -1,5 +1,6 @@
 package edu.washington.escience.myria.operator.agg;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -23,6 +24,7 @@ import edu.washington.escience.myria.operator.UnaryOperator;
 import edu.washington.escience.myria.storage.ReadableTable;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.storage.TupleBatchBuffer;
+import scala.tools.nsc.backend.icode.Primitives;
 
 /**
  * The Aggregation operator that computes an aggregate (e.g., sum, avg, max, min) with a single group by column.
@@ -96,6 +98,7 @@ public class SingleGroupByAggregate extends UnaryOperator {
    * The buffer storing results after group by is done.
    */
   private transient TupleBatchBuffer resultBuffer;
+    private boolean sketchEnabled = false;
 
   /**
    * Constructor.
@@ -109,6 +112,14 @@ public class SingleGroupByAggregate extends UnaryOperator {
     super(child);
     gColumn = Objects.requireNonNull(gfield, "gfield");
     this.factories = Objects.requireNonNull(factories, "factories");
+    boolean anyPreciseAggregates =  Arrays.stream(factories).anyMatch(o -> (o instanceof PrimitiveAggregator) == false || ((PrimitiveAggregator)o).getSketchOption() == AggregationSketchOption.DoNotSketch);
+      boolean anySketchAggregates = Arrays.stream(factories).anyMatch(o -> (o instanceof PrimitiveAggregator) && ((PrimitiveAggregator)o).getSketchOption() == AggregationSketchOption.UseSketch);
+      if(anyPreciseAggregates && anySketchAggregates) sketchEnabled = false;
+      if(sketchEnabled && anySketchAggregates) {
+          //TODO: determine if sketch needs to be enabled by sketching distinct counts
+          sketchEnabled = true;
+      }
+
   }
 
   @Override

@@ -13,7 +13,7 @@ import edu.washington.escience.myria.storage.ReadableTable;
 /**
  * Knows how to compute some aggregate over a set of IntFields.
  */
-public final class IntegerAggregator extends PrimitiveAggregator {
+public class IntegerAggregator extends PrimitiveAggregator {
 
   /** Required for Java serialization. */
   private static final long serialVersionUID = 1L;
