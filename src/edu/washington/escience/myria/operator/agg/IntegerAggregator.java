@@ -1,5 +1,6 @@
 package edu.washington.escience.myria.operator.agg;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 
@@ -19,6 +20,23 @@ public class IntegerAggregator extends PrimitiveAggregator {
   private static final long serialVersionUID = 1L;
   /** Which column of the input this aggregator operates over. */
   private final int fromColumn;
+  private AggregationSketchOption sketchOption;
+
+  protected IntegerAggregator(final String aFieldName, final AggregationOp[] aggOps, final int column, AggregationSketchOption sketchOpt) {
+    this(aFieldName, aggOps, column);
+    this.sketchOption = sketchOpt;
+    if(Arrays.stream(aggOps).anyMatch(o->o != AggregationOp.COUNT))
+    {
+      throw new IllegalArgumentException(
+              "Do not know how to sketch on non count aggregation: ");
+    }
+  }
+
+  public AggregationSketchOption getSketchOption()
+  {
+    return sketchOption;
+  }
+
 
   /**
    * Aggregate operations applicable for int columns.
@@ -152,7 +170,7 @@ public class IntegerAggregator extends PrimitiveAggregator {
   }
 
   /** Private internal class that wraps the state required by this Aggregator as an object. */
-  private final class IntAggState {
+  protected static final class IntAggState {
     /** The number of tuples seen so far. */
     private long count = 0;
     /** The minimum value in the aggregated column. */

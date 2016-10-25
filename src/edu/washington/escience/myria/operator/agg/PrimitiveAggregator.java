@@ -23,7 +23,6 @@ public abstract class PrimitiveAggregator implements Aggregator, Serializable {
      * Required for Java serialization.
      */
     private static final long serialVersionUID = 1L;
-    private AggregationSketchOption sketchOption;
 
 
     /**
@@ -96,15 +95,7 @@ public abstract class PrimitiveAggregator implements Aggregator, Serializable {
      */
     private final Schema resultSchema;
 
-    protected PrimitiveAggregator(final String fieldName, final AggregationOp[] aggOps, AggregationSketchOption sketchOpt) {
-        this(fieldName, aggOps);
-        this.sketchOption = sketchOpt;
-        if(Arrays.stream(aggOps).anyMatch(o->o != AggregationOp.COUNT || o == AggregationOp.SUM))
-        {
-            throw new IllegalArgumentException(
-                    "Do not know how to sketch on non count or sum: ");
-        }
-    }
+
 
     /**
      * Instantiate a PrimitiveAggregator that computes the specified aggregates.
@@ -165,7 +156,6 @@ public abstract class PrimitiveAggregator implements Aggregator, Serializable {
             }
         }
         resultSchema = new Schema(types, names);
-        sketchOption = AggregationSketchOption.DoNotSketch;
     }
 
     /**
@@ -192,8 +182,4 @@ public abstract class PrimitiveAggregator implements Aggregator, Serializable {
         return resultSchema;
     }
 
-    public AggregationSketchOption getSketchOption()
-    {
-        return sketchOption;
-    }
 }
