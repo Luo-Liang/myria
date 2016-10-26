@@ -256,9 +256,8 @@ public class SingleGroupByAggregate extends UnaryOperator {
     private void concatResults(final TupleBatchBuffer resultBuffer, final Object[] aggState)
             throws DbException {
         //semantics has changed. If resultBuffer is null, do nothing.
-        if(resultBuffer == null)
-        {
-            if(sketchEnabled) return;
+        if (resultBuffer == null) {
+            if (sketchEnabled) return;
             else throw new IllegalArgumentException("resultBuffer cannot be null if not in sketch");
         }
         int index = 1;
@@ -274,59 +273,92 @@ public class SingleGroupByAggregate extends UnaryOperator {
      * @throws DbException if there is an error.
      */
     private void generateResult(final TupleBatchBuffer resultBuffer) throws DbException {
-        switch (gColumnType) {
-            case BOOLEAN_TYPE:
-                for (int boolBucket = 0; boolBucket < 2; ++boolBucket) {
-                    Object[] aggState = booleanAggState[boolBucket];
-                    if (aggState != null) {
+
+        if (sketchEnabled) {
+            for (Object key : sketchGroupKeys) {
+                switch (gColumnType) {
+                    case BOOLEAN_TYPE:
+                        resultBuffer.putBoolean(0, (boolean) key);
+                        break;
+                    case STRING_TYPE:
+                        resultBuffer.putString(0, (String) key);
+                        break;
+
+                    case DATETIME_TYPE:
+                        resultBuffer.putDateTime(0, (DateTime) key);
+                        break;
+
+                    case INT_TYPE:
+                        resultBuffer.putInt(0, (int) key);
+                        break;
+                    case LONG_TYPE:
+                        resultBuffer.putLong(0, (long) key);
+                        break;
+                    case FLOAT_TYPE:
+                        resultBuffer.putFloat(0, (float) key);
+                        break;
+                    case DOUBLE_TYPE:
+                        resultBuffer.putDouble(0, (double) key);
+                        break;
+                }
+                //we need to stuff things into that array. Create an array with elements pointing to arrays.
+                Object[] pointersToPointers = new Object[aggregators.length];
+                for(int i = 0; i < pointersToPointers.length; i++)
+                {
+                    pointersToPointers[i] = sketchBuffers[i].getStates(key, gColumnType);
+                }
+                concatResults(resultBuffer,pointersToPointers);
+            }
+        } else {
+            switch (gColumnType) {
+                case BOOLEAN_TYPE:
+                    for (int boolBucket = 0; boolBucket < 2; ++boolBucket) {
+                        Object[] aggState = booleanAggState[boolBucket];
+                        if (aggState != null) {
             /* True is index 0 in booleanAggState, False is index 1. */
-                        resultBuffer.putBoolean(0, boolBucket == 0);
-                        concatResults(resultBuffer, aggState);
+                            resultBuffer.putBoolean(0, boolBucket == 0);
+                            concatResults(resultBuffer, aggState);
+                        }
+                    }
+                    break;
+                case STRING_TYPE: {
+                    for (final Map.Entry<String, Object[]> e : stringAggState.entrySet()) {
+                        resultBuffer.putString(0, e.getKey());
+                        concatResults(resultBuffer, e.getValue());
                     }
                 }
                 break;
-            case STRING_TYPE: {
-                for (final Map.Entry<String, Object[]> e : stringAggState.entrySet()) {
-                    resultBuffer.putString(0, e.getKey());
-                    concatResults(resultBuffer, e.getValue());
-                }
+                case DATETIME_TYPE:
+                    for (final Map.Entry<DateTime, Object[]> e : datetimeAggState.entrySet()) {
+                        resultBuffer.putDateTime(0, e.getKey());
+                        concatResults(resultBuffer, e.getValue());
+                    }
+                    break;
+                case INT_TYPE:
+                    for (int key : intAggState.keySet().toArray()) {
+                        resultBuffer.putInt(0, key);
+                        concatResults(resultBuffer, intAggState.get(key));
+                    }
+                    break;
+                case LONG_TYPE:
+                    for (long key : longAggState.keySet().toArray()) {
+                        resultBuffer.putLong(0, key);
+                        concatResults(resultBuffer, longAggState.get(key));
+                    }
+                    break;
+                case FLOAT_TYPE:
+                    for (float key : floatAggState.keySet().toArray()) {
+                        resultBuffer.putFloat(0, key);
+                        concatResults(resultBuffer, floatAggState.get(key));
+                    }
+                    break;
+                case DOUBLE_TYPE:
+                    for (double key : doubleAggState.keySet().toArray()) {
+                        resultBuffer.putDouble(0, key);
+                        concatResults(resultBuffer, doubleAggState.get(key));
+                    }
+                    break;
             }
-            break;
-            case DATETIME_TYPE:
-                for (final Map.Entry<DateTime, Object[]> e : datetimeAggState.entrySet()) {
-                    resultBuffer.putDateTime(0, e.getKey());
-                    concatResults(resultBuffer, e.getValue());
-                }
-                break;
-            case INT_TYPE:
-                for (int key : intAggState.keySet().toArray()) {
-                    resultBuffer.putInt(0, key);
-                    concatResults(resultBuffer, intAggState.get(key));
-                }
-                break;
-            case LONG_TYPE:
-                for (long key : longAggState.keySet().toArray()) {
-                    resultBuffer.putLong(0, key);
-                    concatResults(resultBuffer, longAggState.get(key));
-                }
-                break;
-            case FLOAT_TYPE:
-                for (float key : floatAggState.keySet().toArray()) {
-                    resultBuffer.putFloat(0, key);
-                    concatResults(resultBuffer, floatAggState.get(key));
-                }
-                break;
-            case DOUBLE_TYPE:
-                for (double key : doubleAggState.keySet().toArray()) {
-                    resultBuffer.putDouble(0, key);
-                    concatResults(resultBuffer, doubleAggState.get(key));
-                }
-                break;
-        }
-        if(sketchEnabled)
-        {
-            //depending on sketch option, stream out data.
-            
         }
     }
 
@@ -360,6 +392,7 @@ public class SingleGroupByAggregate extends UnaryOperator {
     /**
      * @return the group by column.
      */
+
     public final int getGroupByColumn() {
         return gColumn;
     }

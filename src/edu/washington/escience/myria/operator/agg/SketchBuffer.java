@@ -36,17 +36,4 @@ public class SketchBuffer {
         }
         return results;
     }
-
-    public int getCountMinFromIntAggState(final Object key, final Type type) {
-        int min = Integer.MAX_VALUE;
-        int[] familyHashValues = HashUtils.hashValueFamily(key, type, hashFunctionsCount);
-        for (int r = 0; r < hashFunctionsCount; r++) {
-            int column = familyHashValues[r] % rowSize;
-            IntegerAggregator.IntAggState state = (IntegerAggregator.IntAggState)sketchArrays[r][column];
-            Tuple temp = new Tuple(aggregator.getResultSchema());
-            //aggregator.getResult(temp,);
-        }
-        return 0;
-    }
-
 }
