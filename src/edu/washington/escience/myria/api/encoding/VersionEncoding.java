@@ -5,19 +5,13 @@ package edu.washington.escience.myria.api.encoding;
 final class MyriaCommit {
 
   /** Utility class cannot be constructed. */
-
   private MyriaCommit() {}
 
-
-
   /** The git commit id at build time. */
-
   public static final String COMMIT = "MYRIALIANGBRANCH";
 
   /** The git branch at build time. */
-
   public static final String BRANCH = "MASTER";
-
 }
 
 /**

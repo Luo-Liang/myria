@@ -93,7 +93,8 @@ public final class IPCMessageHandler extends SimpleChannelHandler {
       }
       if (ch.getParent() != null) {
         // server channel
-        ch.write(ownerConnectionPool.getMyIDAsMsg()).await(); // await to finish channel registering
+        ch.write(ownerConnectionPool.getMyIDAsMsg())
+            .await(); // await to finish channel registering
         ownerConnectionPool.registerChannel(remoteID, ch);
       } else {
         // client channel

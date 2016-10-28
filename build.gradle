@@ -13,7 +13,7 @@ import com.github.sherter.googlejavaformatgradleplugin.VerifyGoogleJavaFormat
 
 plugins {
   id 'java' // or 'groovy' Must be explicitly applied
-  id 'com.github.johnrengelman.shadow' version '1.2.2'
+  id 'com.github.johnrengelman.shadow' version '1.2.3'
 }
 /* This project uses Java and Eclipse. */
 apply plugin: "java"
@@ -66,13 +66,14 @@ task format(type: GoogleJavaFormat) {
   include '**/*.java'
 }
 
-task verifyFormatting(type: VerifyGoogleJavaFormat) {
-  source 'src'
-  source 'test'
-  include '**/*.java'
-}
-/* Test if all *.java have been formatted. Run ./gradlew format to format all */
-test.dependsOn verifyFormatting
+//I do not care about google styles.
+//task verifyFormatting(type: VerifyGoogleJavaFormat) {
+//  source 'src'
+//  source 'test'
+//  include '**/*.java'
+//}
+///* Test if all *.java have been formatted. Run ./gradlew format to format all */
+//test.dependsOn verifyFormatting
 
 /*
  * List the compile and runtime dependencies of all the tests.
@@ -252,11 +253,11 @@ task copyToLib(type: Copy) {
     from configurations.runtime
 }
 /* Hack to make code that specifies this jar in JVM options version-agnostic */
-task symlinkMetricsJar << {
-    ant.symlink(link: "${buildDir}/libs/jmxetric.jar", resource: "jmxetric-${jmxetricsVersion}.jar", overwrite: true)
-}
-tasks.symlinkMetricsJar.dependsOn copyToLib
-tasks.jar.dependsOn symlinkMetricsJar
+//task symlinkMetricsJar << {
+//    ant.symlink(link: "${buildDir}/libs/jmxetric.jar", resource: "jmxetric-${jmxetricsVersion}.jar", overwrite: true)
+//}
+//tasks.symlinkMetricsJar.dependsOn copyToLib
+//tasks.jar.dependsOn symlinkMetricsJar
 
 /* allTests just runs all tests */
 task allTests
@@ -294,8 +295,9 @@ jacocoTestReport {
 }
 
 /* Update the version and branch in constants.java. */
-task updateCommitInfo(type:Exec) {
-  commandLine './update_commit_id.sh'
-}
-compileJava.dependsOn updateCommitInfo
-eclipseClasspath.dependsOn updateCommitInfo
+//Get rid of this unportable, useless "enhancement"
+//task updateCommitInfo(type:Exec) {
+//  commandLine './update_commit_id.sh'
+//}
+//compileJava.dependsOn updateCommitInfo
+//eclipseClasspath.dependsOn updateCommitInfo
