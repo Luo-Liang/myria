@@ -226,7 +226,7 @@ public class SingleGroupByAggregate extends UnaryOperator {
         Object key = tb.asColumn(gColumn).getObject(i);
         sketchGroupKeys.add(key);
         for (int agg = 0; agg < aggregators.length; agg++) {
-          Object[] groupAggs = sketchBuffers[agg].getStates(key, gColumnType);
+          Object[] groupAggs = sketchBuffers[agg].getCountMinStates(key, gColumnType);
           //foreach groupAgg, increment.
           for (Object state : groupAggs) {
             aggregators[agg].addRow(tb, i, state);
@@ -301,7 +301,7 @@ public class SingleGroupByAggregate extends UnaryOperator {
         //we need to stuff things into that array. Create an array with elements pointing to arrays.
         Object[] pointersToPointers = new Object[aggregators.length];
         for (int i = 0; i < pointersToPointers.length; i++) {
-          pointersToPointers[i] = sketchBuffers[i].getStates(key, gColumnType);
+          pointersToPointers[i] = sketchBuffers[i].getCountMinStates(key, gColumnType);
         }
         concatResults(resultBuffer, pointersToPointers);
       }

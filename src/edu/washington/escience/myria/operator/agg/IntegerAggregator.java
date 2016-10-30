@@ -140,9 +140,8 @@ public class IntegerAggregator extends PrimitiveAggregator {
                   idx,
                   Arrays.stream(states).mapToLong(o -> ((IntAggState) o).count).min().getAsLong());
             else if (sketchOption == AggregationSketchOption.UseSketch)
-              //todo: use AHS
-              throw new IllegalArgumentException(
-                  "Needs to sketch AHS. This argument impl isn't implemented yet.");
+              //todo: use count sketch instead of min count sketch
+
             break;
           case MAX:
             throw new IllegalArgumentException("Don't know how to sketch on " + op.name());
@@ -235,5 +234,19 @@ public class IntegerAggregator extends PrimitiveAggregator {
      * private temp variables for computing stdev.
      */
     private long sumSquared = 0;
+
+    /*
+      May only make sense for Count, but do for every field anyway.
+     */
+    protected IntAggState fieldWiseSubtract(IntAggState other)
+    {
+      IntAggState result = new IntAggState();
+      result.count = this.count - other.count;
+      result.min = this.min - other.min;
+      result.max = this.max = other.max;
+      result.sum = this.sum - other.sum;
+      result.sumSquared = this.sumSquared = other.sumSquared;
+      return result;
+    }
   }
 }

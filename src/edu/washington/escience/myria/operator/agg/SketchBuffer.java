@@ -25,16 +25,32 @@ public class SketchBuffer {
     aggregator = agg;
   }
 
-  public Object[] getStates(final Object key, final Type type) {
+  private Object[] getStatesByKey(final Object key, final Type type, boolean countSketch)
+  {
     int[] familyHashValues = HashUtils.hashValueFamily(key, type, hashFunctionsCount);
     Object[] results = new Object[hashFunctionsCount];
     for (int r = 0; r < hashFunctionsCount; r++) {
-      int column = familyHashValues[r] % rowSize;
+      int column = (familyHashValues[r] + rowSize) % rowSize;
+      if(countSketch)
+      {
+        if(column & 1 == 0) column = column - 1;
+      }
       if (sketchArrays[r][column] == null) {
         sketchArrays[r][column] = aggregator.getInitialState();
       }
       results[r] = sketchArrays[r][column];
     }
     return results;
+  }
+
+  public Object[] getCountMinStates(final Object key, final Type type) {
+    return getStatesByKey(key,type,false);
+  }
+
+  public Object[] getCountStates(final Object key, final Type type)
+  {
+    Object[] results = getCountMinStates(key,type);
+    //now get another set of estimates and perform a diff.
+
   }
 }
