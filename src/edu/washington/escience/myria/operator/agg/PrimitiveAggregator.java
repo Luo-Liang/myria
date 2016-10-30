@@ -176,4 +176,10 @@ public abstract class PrimitiveAggregator implements Aggregator, Serializable {
   public final Schema getResultSchema() {
     return resultSchema;
   }
+
+  @Override
+  public AggregationSketchOption getSketchOption()
+  {
+    return AggregationSketchOption.DoNotSketch;
+  }
 }

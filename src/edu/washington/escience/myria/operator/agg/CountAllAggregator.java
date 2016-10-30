@@ -53,4 +53,10 @@ public final class CountAllAggregator implements Aggregator {
     /** The number of tuples seen so far. */
     private long count = 0;
   }
+
+  @Override
+  public AggregationSketchOption getSketchOption()
+  {
+    return AggregationSketchOption.DoNotSketch;
+  }
 }

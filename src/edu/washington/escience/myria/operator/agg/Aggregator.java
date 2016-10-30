@@ -54,4 +54,10 @@ public interface Aggregator extends Serializable {
    * @return the schema of the outputs of this {@link Aggregator}.
    */
   Schema getResultSchema();
+
+  /**
+   *
+   * @return except for integer aggregation, all should return AggregationSketchOption.DoNotSketch.
+     */
+  AggregationSketchOption getSketchOption();
 }

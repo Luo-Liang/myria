@@ -97,4 +97,10 @@ public class UserDefinedAggregator implements Aggregator {
   public Object getInitialState() {
     return initialState.clone();
   }
+
+  @Override
+  public AggregationSketchOption getSketchOption()
+  {
+    return AggregationSketchOption.DoNotSketch;
+  }
 }
