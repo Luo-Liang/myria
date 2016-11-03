@@ -60,7 +60,7 @@ public class SketchBuffer {
         return retrieve(familyHashValues,countSketch);
     }
 
-    public Object[] getStatesByKeys(final ReadableTable table,int row, final int[] columns)
+    public Object[] getCountMinStatesByRow(final ReadableTable table,int row, final int[] columns)
     {
         return getStatesByKeys(table,row,columns,false);
     }
