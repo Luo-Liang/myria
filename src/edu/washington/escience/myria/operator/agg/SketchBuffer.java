@@ -1,8 +1,10 @@
 package edu.washington.escience.myria.operator.agg;
 
 import edu.washington.escience.myria.Type;
+import edu.washington.escience.myria.storage.ReadableTable;
 import edu.washington.escience.myria.storage.Tuple;
 import edu.washington.escience.myria.util.HashUtils;
+import org.apache.hadoop.yarn.webapp.hamlet.HamletSpec;
 
 import java.util.Arrays;
 
@@ -27,24 +29,40 @@ public class SketchBuffer {
         aggregator = agg;
     }
 
+    private Object[] retrieve(int[] columnIndices, boolean countSketch)
+    {
+      Object[] results = new Object[hashFunctionsCount];
+      for (int r = 0; r < hashFunctionsCount; r++) {
+        int column = columnIndices[r] % rowSize;
+        if (countSketch) {
+          if ((column & 1) == 0) column--;
+          else column++;
+        }
+        if (column < 0) {
+          column += rowSize;
+        }
+        if (sketchArrays[r][column] == null) {
+          sketchArrays[r][column] = aggregator.getInitialState();
+        }
+        results[r] = sketchArrays[r][column];
+      }
+      return results;
+    }
+
     private Object[] getStatesByKey(final Object key, final Type type, boolean countSketch) {
         int[] familyHashValues = HashUtils.hashValueFamily(key, type, hashFunctionsCount);
-        Object[] results = new Object[hashFunctionsCount];
-        for (int r = 0; r < hashFunctionsCount; r++) {
-            int column = familyHashValues[r] % rowSize;
-            if (countSketch) {
-                if ((column & 1) == 0) column--;
-                else column++;
-            }
-            if (column < 0) {
-                column += rowSize;
-            }
-            if (sketchArrays[r][column] == null) {
-                sketchArrays[r][column] = aggregator.getInitialState();
-            }
-            results[r] = sketchArrays[r][column];
-        }
-        return results;
+        return retrieve(familyHashValues,countSketch);
+    }
+
+    private Object[] getStatesByKeys(final ReadableTable table,int row, final int[] columns, boolean countSketch)
+    {
+        int[] familyHashValues = HashUtils.hashSubRowFamily(table,columns,row,hashFunctionsCount);
+        return retrieve(familyHashValues,countSketch);
+    }
+
+    public Object[] getStatesByKeys(final ReadableTable table,int row, final int[] columns)
+    {
+        return getStatesByKeys(table,row,columns,false);
     }
 
     public Object[] getCountMinStates(final Object key, final Type type) {

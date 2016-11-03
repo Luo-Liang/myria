@@ -171,6 +171,30 @@ public final class HashUtils {
    * @param row         the row containing the values to be hashed
    * @return the hash code of the specified columns in the specified row of the given table
    */
+  public static int[] hashSubRowFamily(final ReadableTable table, final int[] hashColumns, final int row, final int requestedHashCount) {
+    Objects.requireNonNull(table, "table");
+    Objects.requireNonNull(hashColumns, "hashColumns");
+    int[] result = new int[requestedHashCount];
+    for(int i = 0; i < requestedHashCount; i++)
+    {
+      Hasher hasher = HASH_FUNCTIONS[0].newHasher();
+      for (int column : hashColumns)
+      {
+        addValue(hasher, table, column, row);
+      }
+      result[i] = hasher.hash().asInt();
+    }
+    return result;
+  }
+
+  /**
+   * Compute the hash code of the specified columns in the specified row of the given table.
+   *
+   * @param table       the table containing the values to be hashed
+   * @param hashColumns the columns to be hashed. Order matters
+   * @param row         the row containing the values to be hashed
+   * @return the hash code of the specified columns in the specified row of the given table
+   */
   public static int hashSubRow(final ReadableTable table, final int[] hashColumns, final int row) {
     Objects.requireNonNull(table, "table");
     Objects.requireNonNull(hashColumns, "hashColumns");
