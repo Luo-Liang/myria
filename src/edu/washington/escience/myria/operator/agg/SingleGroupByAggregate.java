@@ -304,8 +304,8 @@ public class SingleGroupByAggregate extends UnaryOperator {
                 for (int i = 0; i < pointersToPointers.length; i++) {
                     if (aggregators[i].getSketchOption() == AggregationSketchOption.UseSketchMin)
                         pointersToPointers[i] = sketchBuffers[i].getCountMinStates(key, gColumnType);
-                    else if(aggregators[i].getSketchOption() == AggregationSketchOption.UseSketch)
-                        pointersToPointers[i] = sketchBuffers[i].getCountStates(key,gColumnType);
+                    else if (aggregators[i].getSketchOption() == AggregationSketchOption.UseSketch)
+                        pointersToPointers[i] = sketchBuffers[i].getCountStates(key, gColumnType);
                 }
                 concatResults(resultBuffer, pointersToPointers);
             }
@@ -412,8 +412,10 @@ public class SingleGroupByAggregate extends UnaryOperator {
         if (anyPreciseAggregates && anySketchAggregates) sketchEnabled = false;
         if (gColumnType == Type.BOOLEAN_TYPE) sketchEnabled = false;
         if (sketchEnabled && anySketchAggregates) {
-            //TODO: determine if sketch needs to be enabled by sketching distinct counts
-            sketchEnabled = true;
+            SketchAdviser adviser = new SketchAdviser(getChild());
+            sketchEnabled = adviser.shouldSketch(SketchBuffer.DEFAULT_COLUMN * SketchBuffer.DEFAULT_ROWS, new int[]{gColumn}, execEnvVars);
+        }
+        if (sketchEnabled) {
             sketchBuffers = new SketchBuffer[aggregators.length];
             for (int i = 0; i < aggregators.length; i++) {
                 sketchBuffers[i] =
