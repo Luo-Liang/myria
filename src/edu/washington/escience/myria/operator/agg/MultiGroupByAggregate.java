@@ -1,8 +1,6 @@
 package edu.washington.escience.myria.operator.agg;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import javax.annotation.Nullable;
 
@@ -356,6 +354,24 @@ public final class MultiGroupByAggregate extends UnaryOperator {
     groupKeys = new TupleBuffer(groupSchema);
     aggStates = new ArrayList<>();
     groupKeyMap = new IntObjectHashMap<>();
-    sketchBuffers = new SketchBuffer[aggregators.length];
+    boolean anyPreciseAggregates =
+            Arrays.stream(aggregators)
+                    .anyMatch(o -> o.getSketchOption() == AggregationSketchOption.DoNotSketch);
+    boolean anySketchAggregates =
+            Arrays.stream(aggregators)
+                    .anyMatch(o -> o.getSketchOption() != AggregationSketchOption.DoNotSketch);
+    if (anyPreciseAggregates && anySketchAggregates) sketchEnabled = false;
+    if (sketchEnabled && anySketchAggregates) {
+      SketchAdviser adviser = new SketchAdviser(getChild());
+      sketchEnabled = adviser.shouldSketch(SketchBuffer.DEFAULT_COLUMN * SketchBuffer.DEFAULT_ROWS, gfields, execEnvVars);
+    }
+    if (sketchEnabled) {
+      sketchBuffers = new SketchBuffer[aggregators.length];
+      for (int i = 0; i < aggregators.length; i++) {
+        sketchBuffers[i] =
+                new SketchBuffer(
+                        SketchBuffer.DEFAULT_ROWS, SketchBuffer.DEFAULT_COLUMN, aggregators[i]);
+      }
+    }
   }
 };

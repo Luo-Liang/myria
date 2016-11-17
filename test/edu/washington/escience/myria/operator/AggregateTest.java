@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import edu.washington.escience.myria.operator.agg.*;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -34,12 +35,7 @@ import edu.washington.escience.myria.column.builder.FloatColumnBuilder;
 import edu.washington.escience.myria.column.builder.IntColumnBuilder;
 import edu.washington.escience.myria.column.builder.LongColumnBuilder;
 import edu.washington.escience.myria.column.builder.StringColumnBuilder;
-import edu.washington.escience.myria.operator.agg.Aggregate;
-import edu.washington.escience.myria.operator.agg.AggregatorFactory;
-import edu.washington.escience.myria.operator.agg.MultiGroupByAggregate;
 import edu.washington.escience.myria.operator.agg.PrimitiveAggregator.AggregationOp;
-import edu.washington.escience.myria.operator.agg.SingleColumnAggregatorFactory;
-import edu.washington.escience.myria.operator.agg.SingleGroupByAggregate;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.storage.TupleBatchBuffer;
 import edu.washington.escience.myria.storage.TupleBuffer;
@@ -832,6 +828,82 @@ public class AggregateTest {
     mga.open(null);
     TupleBatch result = mga.nextReady();
     assertNotNull(result);
+    assertEquals(1, result.numTuples());
+    assertEquals(3, result.getSchema().numColumns());
+    assertEquals(numTuples, result.getLong(result.numColumns() - 1, 0));
+    mga.close();
+  }
+
+  /**
+  *Test of multicolumn aggregation using min sketch
+   */
+  @Test
+  public void testMultiGroupCountMultiColumnSketchMin() throws DbException {
+    final int numTuples = 10;
+    final Schema schema =
+            new Schema(
+                    ImmutableList.of(Type.LONG_TYPE, Type.LONG_TYPE, Type.LONG_TYPE, Type.LONG_TYPE),
+                    ImmutableList.of("a", "b", "c", "d"));
+
+    final TupleBatchBuffer tbb = new TupleBatchBuffer(schema);
+    for (long i = 0; i < numTuples; i++) {
+      tbb.putLong(0, 0L);
+      tbb.putLong(1, 1L);
+      if (i % 2 == 0) {
+        tbb.putLong(2, 2L);
+      } else {
+        tbb.putLong(2, 4L);
+      }
+      tbb.putLong(3, i);
+    }
+    MultiGroupByAggregate mga =
+            new MultiGroupByAggregate(
+                    new BatchTupleSource(tbb),
+                    new int[] {0, 1},
+                    new SingleColumnAggregatorFactory(0, AggregationSketchOption.UseSketchMin, AggregationOp.COUNT)
+                    );
+    mga.open(null);
+    TupleBatch result = mga.nextReady();
+    assertNotNull(result);
+    //TODO need to fix assertions
+    assertEquals(1, result.numTuples());
+    assertEquals(3, result.getSchema().numColumns());
+    assertEquals(numTuples, result.getLong(result.numColumns() - 1, 0));
+    mga.close();
+  }
+
+  /**
+   *Test of multicolumn aggregation using count sketch
+   */
+  @Test
+  public void testMultiGroupCountMultiColumnSketch() throws DbException {
+    final int numTuples = 10;
+    final Schema schema =
+            new Schema(
+                    ImmutableList.of(Type.LONG_TYPE, Type.LONG_TYPE, Type.LONG_TYPE, Type.LONG_TYPE),
+                    ImmutableList.of("a", "b", "c", "d"));
+
+    final TupleBatchBuffer tbb = new TupleBatchBuffer(schema);
+    for (long i = 0; i < numTuples; i++) {
+      tbb.putLong(0, 0L);
+      tbb.putLong(1, 1L);
+      if (i % 2 == 0) {
+        tbb.putLong(2, 2L);
+      } else {
+        tbb.putLong(2, 4L);
+      }
+      tbb.putLong(3, i);
+    }
+    MultiGroupByAggregate mga =
+            new MultiGroupByAggregate(
+                    new BatchTupleSource(tbb),
+                    new int[] {0, 1},
+                    new SingleColumnAggregatorFactory(0, AggregationSketchOption.UseSketch, AggregationOp.COUNT)
+            );
+    mga.open(null);
+    TupleBatch result = mga.nextReady();
+    assertNotNull(result);
+    //TODO need to fix assertions
     assertEquals(1, result.numTuples());
     assertEquals(3, result.getSchema().numColumns());
     assertEquals(numTuples, result.getLong(result.numColumns() - 1, 0));
