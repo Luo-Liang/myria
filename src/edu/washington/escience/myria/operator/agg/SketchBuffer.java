@@ -78,4 +78,14 @@ public class SketchBuffer {
         results[1] = operands2;
         return results;
     }
+
+    public Object[] getCountStatesByRow(final ReadableTable table,int row, final int[] columns) {
+        Object[] operands1 = getStatesByKeys(table, row, columns, false);
+        Object[] operands2 = getStatesByKeys(table, row, columns, true);
+        //now get another set of estimates and perform a diff.
+        Object[] results = new Object[2];
+        results[0] = operands1;
+        results[1] = operands2;
+        return results;
+    }
 }

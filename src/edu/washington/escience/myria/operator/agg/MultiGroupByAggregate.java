@@ -60,6 +60,14 @@ public final class MultiGroupByAggregate extends UnaryOperator {
   private final int[] grpRange;
 
   /**
+  * If Sketch is enabled, SketchBuffer will be used.
+  */
+  private transient SketchBuffer[] sketchBuffers;
+  //private transient HashSet<Object> sketchGroupKeys;
+  private boolean sketchEnabled = false;
+
+
+  /**
    * Groups the input tuples according to the specified grouping fields, then produces the specified aggregates.
    *
    * @param child The Operator that is feeding us tuples.
@@ -161,7 +169,17 @@ public final class MultiGroupByAggregate extends UnaryOperator {
       TupleUtils.copyValue(tb, gfields[column], row, groupKeys, column);
     }
     hashMatches.add(newIndex);
-    Object[] curAggStates = AggUtils.allocateAggStates(aggregators);
+    Object[] curAggStates;
+    if(sketchEnabled){
+      curAggStates = new Object[aggregators.length];
+      for(int i = 0; i < aggregators.length; i++){
+        curAggStates[i] = sketchBuffers[i].getCountMinStatesByRow(tb, row, gfields);
+      }
+    }
+    else{
+      curAggStates = AggUtils.allocateAggStates(aggregators);
+    }
+
     aggStates.add(curAggStates);
     updateGroup(tb, row, curAggStates);
     Preconditions.checkState(
@@ -192,11 +210,23 @@ public final class MultiGroupByAggregate extends UnaryOperator {
    * @param curAggStates the aggregation states to be updated.
    * @throws DbException if there is an error.
    */
+
+  //****process tuple in single update here
   private void updateGroup(final TupleBatch tb, final int row, final Object[] curAggStates)
       throws DbException {
-    for (int agg = 0; agg < aggregators.length; ++agg) {
-      aggregators[agg].addRow(tb, row, curAggStates[agg]);
-    }
+        if(sketchEnabled){
+          for(int agg = 0; agg < aggregators.length; ++agg){
+            for(int i = 0; i < ((Object[]) curAggStates[agg]).length; i++){
+              aggregators[agg].addRow(tb, row, ((Object[]) curAggStates[agg])[i]);
+            }
+          }
+
+        }
+        else{
+          for (int agg = 0; agg < aggregators.length; ++agg) {
+            aggregators[agg].addRow(tb, row, curAggStates[agg]);
+          }
+        }
   }
 
   /**
@@ -215,31 +245,73 @@ public final class MultiGroupByAggregate extends UnaryOperator {
       return null;
     }
 
-    TupleBatch curGroupKeys = groupKeyList.remove(0);
-    TupleBatchBuffer curGroupAggs = new TupleBatchBuffer(aggSchema);
-    for (int row = 0; row < curGroupKeys.numTuples(); ++row) {
-      Object[] rowAggs = aggStates.get(row);
-      int curCol = 0;
-      for (int agg = 0; agg < aggregators.length; ++agg) {
-        aggregators[agg].getResult(curGroupAggs, curCol, rowAggs[agg]);
-        curCol += aggregators[agg].getResultSchema().numColumns();
+    if(sketchEnabled){
+      TupleBatch curGroupKeys = groupKeyList.remove(0);
+      TupleBatchBuffer curGroupAggs = new TupleBatchBuffer(aggSchema);
+      int[] numCols = new int[gfields.length];
+      for(int i = 0; i < gfields.length; i++){
+        numCols[i] = i;
       }
-    }
-    TupleBatch aggResults = curGroupAggs.popAny();
-    Preconditions.checkState(
-        curGroupKeys.numTuples() == aggResults.numTuples(),
-        "curGroupKeys size %s != aggResults size %s",
-        curGroupKeys.numTuples(),
-        aggResults.numTuples());
+      for (int row = 0; row < curGroupKeys.numTuples(); ++row) {
+        Object[] rowAggs = aggStates.get(row);
+        int curCol = 0;
+        for (int agg = 0; agg < aggregators.length; ++agg) {
+          if(aggregators[agg].getSketchOption() == AggregationSketchOption.UseSketchMin){
+            //TODO what do we need to pass into getCountMinStates
+            aggregators[agg].getResult(curGroupAggs, curCol, sketchBuffers[agg].getCountMinStatesByRow(curGroupKeys, row, numCols));
+          }
+          else if(aggregators[agg].getSketchOption() == AggregationSketchOption.UseSketch){
+            //TODO same here, what to pass in as args
+            aggregators[agg].getResult(curGroupAggs, curCol, sketchBuffers[agg].getCountStatesByRow(curGroupKeys, row, numCols));
+          }
+          curCol += aggregators[agg].getResultSchema().numColumns();
+        }
+      }
+      TupleBatch aggResults = curGroupAggs.popAny();
+      Preconditions.checkState(
+          curGroupKeys.numTuples() == aggResults.numTuples(),
+          "curGroupKeys size %s != aggResults size %s",
+          curGroupKeys.numTuples(),
+          aggResults.numTuples());
 
-    /* Note: as of Java7 sublists of sublists do what we want -- the sublists are at most one deep. */
-    aggStates = aggStates.subList(curGroupKeys.numTuples(), aggStates.size());
-    return new TupleBatch(
-        getSchema(),
-        ImmutableList.<Column<?>>builder()
-            .addAll(curGroupKeys.getDataColumns())
-            .addAll(aggResults.getDataColumns())
-            .build());
+      /* Note: as of Java7 sublists of sublists do what we want -- the sublists are at most one deep. */
+      aggStates = aggStates.subList(curGroupKeys.numTuples(), aggStates.size());
+      return new TupleBatch(
+          getSchema(),
+          ImmutableList.<Column<?>>builder()
+              .addAll(curGroupKeys.getDataColumns())
+              .addAll(aggResults.getDataColumns())
+              .build());
+
+    }
+    else{
+      TupleBatch curGroupKeys = groupKeyList.remove(0);
+      TupleBatchBuffer curGroupAggs = new TupleBatchBuffer(aggSchema);
+      for (int row = 0; row < curGroupKeys.numTuples(); ++row) {
+        Object[] rowAggs = aggStates.get(row);
+        int curCol = 0;
+        for (int agg = 0; agg < aggregators.length; ++agg) {
+          //this updates curGroupAggs with rowAggs[agg]
+          aggregators[agg].getResult(curGroupAggs, curCol, rowAggs[agg]);
+          curCol += aggregators[agg].getResultSchema().numColumns();
+        }
+      }
+      TupleBatch aggResults = curGroupAggs.popAny();
+      Preconditions.checkState(
+          curGroupKeys.numTuples() == aggResults.numTuples(),
+          "curGroupKeys size %s != aggResults size %s",
+          curGroupKeys.numTuples(),
+          aggResults.numTuples());
+
+      /* Note: as of Java7 sublists of sublists do what we want -- the sublists are at most one deep. */
+      aggStates = aggStates.subList(curGroupKeys.numTuples(), aggStates.size());
+      return new TupleBatch(
+          getSchema(),
+          ImmutableList.<Column<?>>builder()
+              .addAll(curGroupKeys.getDataColumns())
+              .addAll(aggResults.getDataColumns())
+              .build());
+    }
   }
 
   /**
@@ -284,5 +356,6 @@ public final class MultiGroupByAggregate extends UnaryOperator {
     groupKeys = new TupleBuffer(groupSchema);
     aggStates = new ArrayList<>();
     groupKeyMap = new IntObjectHashMap<>();
+    sketchBuffers = new SketchBuffer[aggregators.length];
   }
 };
