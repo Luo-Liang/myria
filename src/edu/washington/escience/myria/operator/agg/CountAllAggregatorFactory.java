@@ -20,10 +20,4 @@ public final class CountAllAggregatorFactory implements AggregatorFactory {
   public Aggregator get(final Schema inputSchema) throws DbException {
     return new CountAllAggregator();
   }
-
-  @Override
-  public Aggregator get(Schema inputSchema, AggregationSketchOption option) throws DbException
-  {
-    return get(inputSchema, AggregationSketchOption.DoNotSketch);
-  }
 }

@@ -22,7 +22,7 @@ public class SingleColumnAggregatorFactory implements AggregatorFactory {
   @JsonProperty private final int column;
   /** Which aggregate options are requested. See {@link PrimitiveAggregator}. */
   @JsonProperty private final AggregationOp[] aggOps;
-
+  @JsonProperty private final AggregationSketchOption option;
   /**
    * A wrapper for the {@link PrimitiveAggregator} implementations like {@link IntegerAggregator}.
    *
@@ -33,42 +33,26 @@ public class SingleColumnAggregatorFactory implements AggregatorFactory {
   public SingleColumnAggregatorFactory(
       @JsonProperty(value = "column", required = true) final Integer column,
       @JsonProperty(value = "aggOps", required = true) final AggregationOp... aggOps) {
+    this(column, AggregationSketchOption.DoNotSketch, aggOps);
+  }
+
+  @JsonCreator
+  public SingleColumnAggregatorFactory(
+          @JsonProperty(value = "column", required = true) final Integer column,
+          @JsonProperty(value = "sketch", required = false) final AggregationSketchOption option,
+          @JsonProperty(value = "aggOps", required = true) final AggregationOp... aggOps) {
     this.column = Objects.requireNonNull(column, "column").intValue();
     this.aggOps = Objects.requireNonNull(aggOps, "aggOps");
     Preconditions.checkArgument(aggOps.length > 0, "no aggregation operators selected");
     for (int i = 0; i < aggOps.length; ++i) {
       Preconditions.checkNotNull(aggOps[i], "aggregation operator %s cannot be null", i);
     }
+    this.option = option;
   }
 
-  @Override
-  public Aggregator get(final Schema inputSchema) {
-    //Objects.requireNonNull(inputSchema, "inputSchema");
-    //Objects.requireNonNull(aggOps, "aggOps");
-    //String inputName = inputSchema.getColumnName(column);
-    //Type type = inputSchema.getColumnType(column);
-    //switch (type) {
-    //  case BOOLEAN_TYPE:
-    //    return new BooleanAggregator(inputName, aggOps, column);
-    //  case DATETIME_TYPE:
-    //    return new DateTimeAggregator(inputName, aggOps, column);
-    //  case DOUBLE_TYPE:
-    //    return new DoubleAggregator(inputName, aggOps, column);
-    //  case FLOAT_TYPE:
-    //    return new FloatAggregator(inputName, aggOps, column);
-    //  case INT_TYPE:
-    //    return new IntegerAggregator(inputName, aggOps, column);
-    //  case LONG_TYPE:
-    //    return new LongAggregator(inputName, aggOps, column);
-    //  case STRING_TYPE:
-    //    return new StringAggregator(inputName, aggOps, column);
-    //}
-    //throw new IllegalArgumentException("Unknown column type: " + type);
-    return get(inputSchema, AggregationSketchOption.DoNotSketch);
-  }
 
   @Override
-  public Aggregator get(Schema inputSchema, AggregationSketchOption option)
+  public Aggregator get(Schema inputSchema)
   {
     Objects.requireNonNull(inputSchema, "inputSchema");
     Objects.requireNonNull(aggOps, "aggOps");

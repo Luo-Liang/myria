@@ -30,5 +30,4 @@ public interface AggregatorFactory extends Serializable {
    */
   @Nonnull
   Aggregator get(Schema inputSchema) throws DbException;
-  Aggregator get(Schema inputSchema, AggregationSketchOption option) throws DbException;
 }
