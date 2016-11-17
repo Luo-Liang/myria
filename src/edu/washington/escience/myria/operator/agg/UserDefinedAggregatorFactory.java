@@ -136,6 +136,12 @@ public class UserDefinedAggregatorFactory implements AggregatorFactory {
     return new UserDefinedAggregator(state.clone(), updateEvaluator, emitEvaluators, resultSchema);
   }
 
+  @Override
+  public Aggregator get(Schema inputSchema, AggregationSketchOption option) throws DbException
+  {
+    return get(inputSchema);
+  }
+
   /**
    * Produce a {@link ScriptEvalInterface} from {@link Expression}s and {@link ExpressionOperatorParameter}s. This
    * function produces the code for a Java script that executes all expressions in turn and appends the calculated

@@ -8,6 +8,8 @@ import com.google.common.collect.Sets;
 import edu.washington.escience.myria.DbException;
 import edu.washington.escience.myria.Schema;
 import edu.washington.escience.myria.operator.agg.PrimitiveAggregator.AggregationOp;
+import org.fusesource.leveldbjni.internal.NativeDB;
+import org.iq80.leveldb.DBException;
 
 /**
  * Utility functions for aggregation.
@@ -89,9 +91,20 @@ public final class AggUtils {
    */
   public static Aggregator[] allocateAggs(
       final AggregatorFactory[] factories, final Schema inputSchema) throws DbException {
+    //Aggregator[] aggregators = new Aggregator[factories.length];
+    //for (int j = 0; j < factories.length; ++j) {
+    //  aggregators[j] = factories[j].get(inputSchema);
+    //}
+    //return aggregators;
+    return allocateAggs(factories, inputSchema, AggregationSketchOption.DoNotSketch);
+  }
+
+  public static Aggregator[] allocateAggs(
+    final AggregatorFactory[] factories, final Schema inputSchema, AggregationSketchOption option) throws DbException
+  {
     Aggregator[] aggregators = new Aggregator[factories.length];
     for (int j = 0; j < factories.length; ++j) {
-      aggregators[j] = factories[j].get(inputSchema);
+      aggregators[j] = factories[j].get(inputSchema,option);
     }
     return aggregators;
   }
