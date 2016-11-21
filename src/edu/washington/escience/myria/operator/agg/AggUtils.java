@@ -91,22 +91,11 @@ public final class AggUtils {
    */
   public static Aggregator[] allocateAggs(
       final AggregatorFactory[] factories, final Schema inputSchema) throws DbException {
-    //Aggregator[] aggregators = new Aggregator[factories.length];
-    //for (int j = 0; j < factories.length; ++j) {
-    //  aggregators[j] = factories[j].get(inputSchema);
-    //}
-    //return aggregators;
-    return allocateAggs(factories, inputSchema, AggregationSketchOption.DoNotSketch);
-  }
-
-  public static Aggregator[] allocateAggs(
-    final AggregatorFactory[] factories, final Schema inputSchema, AggregationSketchOption option) throws DbException
-  {
-    Aggregator[] aggregators = new Aggregator[factories.length];
-    for (int j = 0; j < factories.length; ++j) {
-      aggregators[j] = factories[j].get(inputSchema,option);
-    }
-    return aggregators;
+     Aggregator[] aggregators = new Aggregator[factories.length];
+     for (int j = 0; j < factories.length; ++j) {
+       aggregators[j] = factories[j].get(inputSchema);
+     }
+     return aggregators;
   }
 
   /**

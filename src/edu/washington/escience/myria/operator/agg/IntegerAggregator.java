@@ -37,7 +37,7 @@ public class IntegerAggregator extends PrimitiveAggregator {
             AggregationSketchOption sketchOpt) {
         this(aFieldName, aggOps, column);
         this.sketchOption = sketchOpt;
-        if (Arrays.stream(aggOps).anyMatch(o -> o != AggregationOp.COUNT)) {
+        if (Arrays.stream(aggOps).anyMatch(o -> o != AggregationOp.COUNT && sketchOpt != AggregationSketchOption.DoNotSketch)) {
             throw new IllegalArgumentException("Do not know how to sketch on non count aggregation: ");
         }
     }

@@ -454,17 +454,21 @@ public class AggregateTest {
     TestUtils.assertTupleBagEqual(TestUtils.groupByMax(testBase, 0, 1), actualResult);
   }
 
-  public void testSingleGroupCountMin() throws DbException, InterruptedException
+  @Test
+  public void testSingleGroupCountSketchMin() throws DbException, InterruptedException
   {
-    final int numTuples = 2 * TupleBatch.BATCH_SIZE + 1;
+    //use easy test
+    SketchBuffer.DEFAULT_ROWS = 1;
+    SketchBuffer.DEFAULT_COLUMN = 1;
+    final int numTuples = 1;//2 * TupleBatch.BATCH_SIZE + 1;
 
     final TupleBatchBuffer testBase = generateRandomTuples(numTuples);
     // group by name, aggregate on id
     SingleGroupByAggregate agg =
             new SingleGroupByAggregate(
                     new BatchTupleSource(testBase),
-                    1,
-                    new SingleColumnAggregatorFactory(0, AggregationOp.MIN));
+                    0,
+                    new SingleColumnAggregatorFactory(1, AggregationSketchOption.UseSketchMin, AggregationOp.COUNT));
     agg.open(null);
     TupleBatch tb = null;
     TupleBatchBuffer result = new TupleBatchBuffer(agg.getSchema());
@@ -476,26 +480,9 @@ public class AggregateTest {
     }
     agg.close();
     HashMap<Tuple, Integer> actualResult = TestUtils.tupleBatchToTupleBag(result);
-    TestUtils.assertTupleBagEqual(TestUtils.groupByMin(testBase, 1, 0), actualResult);
-
-    agg =
-            new SingleGroupByAggregate(
-                    new BatchTupleSource(testBase),
-                    0,
-                    new SingleColumnAggregatorFactory(1, AggregationSketchOption.UseSketchMin, AggregationOp.COUNT));
-    agg.open(null);
-    tb = null;
-    result = new TupleBatchBuffer(agg.getSchema());
-    while (!agg.eos()) {
-      tb = agg.nextReady();
-      if (tb != null) {
-        tb.compactInto(result);
-      }
-    }
-    agg.close();
-    actualResult = TestUtils.tupleBatchToTupleBag(result);
     TestUtils.assertTupleBagEqual(TestUtils.groupByMin(testBase, 0, 1), actualResult);
   }
+
   @Test
   public void testSingleGroupMin() throws DbException, InterruptedException {
     final int numTuples = 2 * TupleBatch.BATCH_SIZE + 1;
