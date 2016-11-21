@@ -974,11 +974,12 @@ public class AggregateTest
         final int numTuples = 1 + 2 * TupleBatch.BATCH_SIZE;
 
         final TupleBatchBuffer testBase = generateRandomIntegerTuples(numTuples);
+        //grouping on both columns, id and name
         MultiGroupByAggregate mga =
                 new MultiGroupByAggregate(
                         new BatchTupleSource(testBase),
-                        new int[]{0},
-                        new SingleColumnAggregatorFactory(1, AggregationSketchOption.UseSketchMin, AggregationOp.COUNT)
+                        new int[]{0,1},
+                        new SingleColumnAggregatorFactory(0, AggregationSketchOption.UseSketchMin, AggregationOp.COUNT)
                 );
         mga.open(new HashMap<String, Object>(){
             {
@@ -1015,11 +1016,12 @@ public class AggregateTest
         final int numTuples = 1 + 2 * TupleBatch.BATCH_SIZE;
 
         final TupleBatchBuffer testBase = generateRandomIntegerTuples(numTuples);
+        //grouping on both columns, id and name
         MultiGroupByAggregate mga =
                 new MultiGroupByAggregate(
                         new BatchTupleSource(testBase),
-                        new int[]{0},
-                        new SingleColumnAggregatorFactory(1, AggregationSketchOption.UseSketch, AggregationOp.COUNT)
+                        new int[]{0,1},
+                        new SingleColumnAggregatorFactory(0, AggregationSketchOption.UseSketch, AggregationOp.COUNT)
                 );
         mga.open(new HashMap<String, Object>(){
             {
