@@ -44,12 +44,14 @@ public class SketchAdviser {
         int relationLength = 0;
         double multiplicationRatio = 1;
         try {
-            underlyingRelation.close();
-            underlyingRelation.open(environment);
+            //underlyingRelation.close();
+            //underlyingRelation.open(environment);
             while (!underlyingRelation.eos()) {
                 TupleBatch batch = underlyingRelation.nextReady();
+                if(batch!=null)
                 relationLength += batch.numTuples();
             }
+            underlyingRelation.close();
             if (relationLength < cellCount) {
                 return false;
             }

@@ -413,8 +413,9 @@ public class SingleGroupByAggregate extends UnaryOperator {
         if (anyPreciseAggregates) sketchEnabled = false;
         if (gColumnType == Type.BOOLEAN_TYPE) sketchEnabled = false;
         if (sketchEnabled) {
-            SketchAdviser adviser = new SketchAdviser(getChild());
-            sketchEnabled = adviser.shouldSketch(SketchBuffer.DEFAULT_COLUMN * SketchBuffer.DEFAULT_ROWS, new int[]{gColumn}, execEnvVars);
+            //TODO: can only enumerate it once for TupleBatchSource.
+            //SketchAdviser adviser = new SketchAdviser(getChild());
+            //sketchEnabled = adviser.shouldSketch(SketchBuffer.DEFAULT_COLUMN * SketchBuffer.DEFAULT_ROWS, new int[]{gColumn}, execEnvVars);
         }
         if (sketchEnabled || (execEnvVars!= null && (boolean) execEnvVars.get("Debug_Sketch"))) {
             sketchBuffers = new SketchBuffer[aggregators.length];
