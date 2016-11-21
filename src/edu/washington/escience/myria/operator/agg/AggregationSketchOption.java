@@ -6,5 +6,5 @@ package edu.washington.escience.myria.operator.agg;
 public enum AggregationSketchOption {
   UseSketchMin,
   UseSketch,
-  DoNotSketch
+  DoNotSketch;
 }
