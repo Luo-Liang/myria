@@ -417,7 +417,7 @@ public class SingleGroupByAggregate extends UnaryOperator {
             //SketchAdviser adviser = new SketchAdviser(getChild());
             //sketchEnabled = adviser.shouldSketch(SketchBuffer.DEFAULT_COLUMN * SketchBuffer.DEFAULT_ROWS, new int[]{gColumn}, execEnvVars);
         }
-        if (sketchEnabled || (execEnvVars!= null && (boolean) execEnvVars.get("Debug_Sketch"))) {
+        if (sketchEnabled || (execEnvVars!= null && execEnvVars.get("Debug_Sketch") == Boolean.TRUE)) {
             sketchBuffers = new SketchBuffer[aggregators.length];
             for (int i = 0; i < aggregators.length; i++) {
                 sketchBuffers[i] =
