@@ -969,41 +969,40 @@ public class AggregateTest
     @Test
     public void testMultiGroupCountMultiColumnSketchMin() throws DbException
     {
-        final int numTuples = 10;
-        final Schema schema =
-                new Schema(
-                        ImmutableList.of(Type.LONG_TYPE, Type.LONG_TYPE, Type.LONG_TYPE, Type.LONG_TYPE),
-                        ImmutableList.of("a", "b", "c", "d"));
+        SketchBuffer.DEFAULT_ROWS = 1;
+        SketchBuffer.DEFAULT_COLUMN = 1;
+        final int numTuples = 1 + 2 * TupleBatch.BATCH_SIZE;
 
-        final TupleBatchBuffer tbb = new TupleBatchBuffer(schema);
-        for (long i = 0; i < numTuples; i++)
-        {
-            tbb.putLong(0, 0L);
-            tbb.putLong(1, 1L);
-            if (i % 2 == 0)
-            {
-                tbb.putLong(2, 2L);
-            } else
-            {
-                tbb.putLong(2, 4L);
-            }
-            tbb.putLong(3, i);
-        }
+        final TupleBatchBuffer testBase = generateRandomIntegerTuples(numTuples);
         MultiGroupByAggregate mga =
                 new MultiGroupByAggregate(
-                        new BatchTupleSource(tbb),
-                        new int[]{0, 1},
-                        new SingleColumnAggregatorFactory(0, AggregationSketchOption.UseSketchMin, AggregationOp.COUNT)
+                        new BatchTupleSource(testBase),
+                        new int[]{0},
+                        new SingleColumnAggregatorFactory(1, AggregationSketchOption.UseSketchMin, AggregationOp.COUNT)
                 );
-        mga.open(null);
-        TupleBatch result = mga.nextReady();
-        assertNotNull(result);
-        //TODO need to fix assertions
-        assertEquals(1, result.numTuples());
-        assertEquals(3, result.getSchema().numColumns());
-        assertEquals(numTuples, result.getLong(result.numColumns() - 1, 0));
+        mga.open(new HashMap<String, Object>(){
+            {
+                put("Debug_Sketch", true);
+            }});
+        TupleBatch tb = null;
+        TupleBatchBuffer result = new TupleBatchBuffer(mga.getSchema());
+        while(!mga.eos()) {
+            tb = mga.nextReady();
+            if (tb != null) {
+                tb.compactInto(result);
+            }
+        }
         mga.close();
+        HashMap<Tuple, Integer> actualResult = TestUtils.tupleBatchToTupleBag(result);
+        //TestUtils.assertTupleBagEqual(TestUtils.groupByMin(testBase, 0, 1), actualResult);
+        HashMap<Tuple, Integer> sanityCheck = TestUtils.groupByCount(testBase, 0, 1);
+        Assert.assertEquals(actualResult.size(), sanityCheck.size());
+        for (Map.Entry<Tuple, Integer> s : actualResult.entrySet())
+        {
+            Assert.assertTrue((Long) s.getKey().get(1) == numTuples);
+        }
     }
+
 
     /**
      * Test of multicolumn aggregation using count sketch
@@ -1011,40 +1010,38 @@ public class AggregateTest
     @Test
     public void testMultiGroupCountMultiColumnSketch() throws DbException
     {
-        final int numTuples = 10;
-        final Schema schema =
-                new Schema(
-                        ImmutableList.of(Type.LONG_TYPE, Type.LONG_TYPE, Type.LONG_TYPE, Type.LONG_TYPE),
-                        ImmutableList.of("a", "b", "c", "d"));
+        SketchBuffer.DEFAULT_ROWS = 1;
+        SketchBuffer.DEFAULT_COLUMN = 1;
+        final int numTuples = 1 + 2 * TupleBatch.BATCH_SIZE;
 
-        final TupleBatchBuffer tbb = new TupleBatchBuffer(schema);
-        for (long i = 0; i < numTuples; i++)
-        {
-            tbb.putLong(0, 0L);
-            tbb.putLong(1, 1L);
-            if (i % 2 == 0)
-            {
-                tbb.putLong(2, 2L);
-            } else
-            {
-                tbb.putLong(2, 4L);
-            }
-            tbb.putLong(3, i);
-        }
+        final TupleBatchBuffer testBase = generateRandomIntegerTuples(numTuples);
         MultiGroupByAggregate mga =
                 new MultiGroupByAggregate(
-                        new BatchTupleSource(tbb),
-                        new int[]{0, 1},
-                        new SingleColumnAggregatorFactory(0, AggregationSketchOption.UseSketch, AggregationOp.COUNT)
+                        new BatchTupleSource(testBase),
+                        new int[]{0},
+                        new SingleColumnAggregatorFactory(1, AggregationSketchOption.UseSketch, AggregationOp.COUNT)
                 );
-        mga.open(null);
-        TupleBatch result = mga.nextReady();
-        assertNotNull(result);
-        //TODO need to fix assertions
-        assertEquals(1, result.numTuples());
-        assertEquals(3, result.getSchema().numColumns());
-        assertEquals(numTuples, result.getLong(result.numColumns() - 1, 0));
+        mga.open(new HashMap<String, Object>(){
+            {
+                put("Debug_Sketch", true);
+            }});
+        TupleBatch tb = null;
+        TupleBatchBuffer result = new TupleBatchBuffer(mga.getSchema());
+        while(!mga.eos()) {
+            tb = mga.nextReady();
+            if (tb != null) {
+                tb.compactInto(result);
+            }
+        }
         mga.close();
+        HashMap<Tuple, Integer> actualResult = TestUtils.tupleBatchToTupleBag(result);
+        //TestUtils.assertTupleBagEqual(TestUtils.groupByMin(testBase, 0, 1), actualResult);
+        HashMap<Tuple, Integer> sanityCheck = TestUtils.groupByCount(testBase, 0, 1);
+        Assert.assertEquals(actualResult.size(), sanityCheck.size());
+        for (Map.Entry<Tuple, Integer> s : actualResult.entrySet())
+        {
+            Assert.assertTrue((Long) s.getKey().get(1) == numTuples);
+        }
     }
 
     /**
