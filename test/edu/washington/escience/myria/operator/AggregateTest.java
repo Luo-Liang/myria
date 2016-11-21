@@ -877,6 +877,82 @@ public class AggregateTest {
   }
 
   /**
+  *Test of multicolumn aggregation using min sketch
+   */
+  @Test
+  public void testMultiGroupCountMultiColumnSketchMin() throws DbException {
+    final int numTuples = 10;
+    final Schema schema =
+            new Schema(
+                    ImmutableList.of(Type.LONG_TYPE, Type.LONG_TYPE, Type.LONG_TYPE, Type.LONG_TYPE),
+                    ImmutableList.of("a", "b", "c", "d"));
+
+    final TupleBatchBuffer tbb = new TupleBatchBuffer(schema);
+    for (long i = 0; i < numTuples; i++) {
+      tbb.putLong(0, 0L);
+      tbb.putLong(1, 1L);
+      if (i % 2 == 0) {
+        tbb.putLong(2, 2L);
+      } else {
+        tbb.putLong(2, 4L);
+      }
+      tbb.putLong(3, i);
+    }
+    MultiGroupByAggregate mga =
+            new MultiGroupByAggregate(
+                    new BatchTupleSource(tbb),
+                    new int[] {0, 1},
+                    new SingleColumnAggregatorFactory(0, AggregationSketchOption.UseSketchMin, AggregationOp.COUNT)
+                    );
+    mga.open(null);
+    TupleBatch result = mga.nextReady();
+    assertNotNull(result);
+    //TODO need to fix assertions
+    assertEquals(1, result.numTuples());
+    assertEquals(3, result.getSchema().numColumns());
+    assertEquals(numTuples, result.getLong(result.numColumns() - 1, 0));
+    mga.close();
+  }
+
+  /**
+   *Test of multicolumn aggregation using count sketch
+   */
+  @Test
+  public void testMultiGroupCountMultiColumnSketch() throws DbException {
+    final int numTuples = 10;
+    final Schema schema =
+            new Schema(
+                    ImmutableList.of(Type.LONG_TYPE, Type.LONG_TYPE, Type.LONG_TYPE, Type.LONG_TYPE),
+                    ImmutableList.of("a", "b", "c", "d"));
+
+    final TupleBatchBuffer tbb = new TupleBatchBuffer(schema);
+    for (long i = 0; i < numTuples; i++) {
+      tbb.putLong(0, 0L);
+      tbb.putLong(1, 1L);
+      if (i % 2 == 0) {
+        tbb.putLong(2, 2L);
+      } else {
+        tbb.putLong(2, 4L);
+      }
+      tbb.putLong(3, i);
+    }
+    MultiGroupByAggregate mga =
+            new MultiGroupByAggregate(
+                    new BatchTupleSource(tbb),
+                    new int[] {0, 1},
+                    new SingleColumnAggregatorFactory(0, AggregationSketchOption.UseSketch, AggregationOp.COUNT)
+            );
+    mga.open(null);
+    TupleBatch result = mga.nextReady();
+    assertNotNull(result);
+    //TODO need to fix assertions
+    assertEquals(1, result.numTuples());
+    assertEquals(3, result.getSchema().numColumns());
+    assertEquals(numTuples, result.getLong(result.numColumns() - 1, 0));
+    mga.close();
+  }
+
+  /**
    * Finds a collision of a tuple of all integers with the given grouping.
    *
    * @param numCols the columns to group by
