@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import edu.washington.escience.myria.operator.agg.*;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -34,12 +35,7 @@ import edu.washington.escience.myria.column.builder.FloatColumnBuilder;
 import edu.washington.escience.myria.column.builder.IntColumnBuilder;
 import edu.washington.escience.myria.column.builder.LongColumnBuilder;
 import edu.washington.escience.myria.column.builder.StringColumnBuilder;
-import edu.washington.escience.myria.operator.agg.Aggregate;
-import edu.washington.escience.myria.operator.agg.AggregatorFactory;
-import edu.washington.escience.myria.operator.agg.MultiGroupByAggregate;
 import edu.washington.escience.myria.operator.agg.PrimitiveAggregator.AggregationOp;
-import edu.washington.escience.myria.operator.agg.SingleColumnAggregatorFactory;
-import edu.washington.escience.myria.operator.agg.SingleGroupByAggregate;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.storage.TupleBatchBuffer;
 import edu.washington.escience.myria.storage.TupleBuffer;
@@ -458,6 +454,48 @@ public class AggregateTest {
     TestUtils.assertTupleBagEqual(TestUtils.groupByMax(testBase, 0, 1), actualResult);
   }
 
+  public void testSingleGroupCountMin() throws DbException, InterruptedException
+  {
+    final int numTuples = 2 * TupleBatch.BATCH_SIZE + 1;
+
+    final TupleBatchBuffer testBase = generateRandomTuples(numTuples);
+    // group by name, aggregate on id
+    SingleGroupByAggregate agg =
+            new SingleGroupByAggregate(
+                    new BatchTupleSource(testBase),
+                    1,
+                    new SingleColumnAggregatorFactory(0, AggregationOp.MIN));
+    agg.open(null);
+    TupleBatch tb = null;
+    TupleBatchBuffer result = new TupleBatchBuffer(agg.getSchema());
+    while (!agg.eos()) {
+      tb = agg.nextReady();
+      if (tb != null) {
+        tb.compactInto(result);
+      }
+    }
+    agg.close();
+    HashMap<Tuple, Integer> actualResult = TestUtils.tupleBatchToTupleBag(result);
+    TestUtils.assertTupleBagEqual(TestUtils.groupByMin(testBase, 1, 0), actualResult);
+
+    agg =
+            new SingleGroupByAggregate(
+                    new BatchTupleSource(testBase),
+                    0,
+                    new SingleColumnAggregatorFactory(1, AggregationSketchOption.UseSketchMin, AggregationOp.COUNT));
+    agg.open(null);
+    tb = null;
+    result = new TupleBatchBuffer(agg.getSchema());
+    while (!agg.eos()) {
+      tb = agg.nextReady();
+      if (tb != null) {
+        tb.compactInto(result);
+      }
+    }
+    agg.close();
+    actualResult = TestUtils.tupleBatchToTupleBag(result);
+    TestUtils.assertTupleBagEqual(TestUtils.groupByMin(testBase, 0, 1), actualResult);
+  }
   @Test
   public void testSingleGroupMin() throws DbException, InterruptedException {
     final int numTuples = 2 * TupleBatch.BATCH_SIZE + 1;
