@@ -1,6 +1,7 @@
 package edu.washington.escience.myria.operator.agg;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Range;
 import edu.washington.escience.myria.DbException;
 import edu.washington.escience.myria.Schema;
 import edu.washington.escience.myria.Type;
@@ -15,6 +16,7 @@ import javax.annotation.Nullable;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * Created by liangluo on 11/22/2016.
@@ -38,10 +40,10 @@ public class SketchOperator extends UnaryOperator
     private transient TupleBatchBuffer resultBuffer;
     private transient RawSketchBuffer sketchBuffer;
 
-    public SketchOperator(@Nullable final Operator child, final int[] gfields)
+    public SketchOperator(@Nullable final Operator child)
     {
         super(child);
-        this.groupColumns = gfields;
+        this.groupColumns = IntStream.range(0,child.getSchema().numColumns()).toArray();
         sketchBuffer = new RawSketchBuffer(SketchBuffer.DEFAULT_ROWS, SketchBuffer.DEFAULT_COLUMN);
         //regardless of request, do a sketch
     }
