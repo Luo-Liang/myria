@@ -43,9 +43,7 @@ public class SketchOperator extends UnaryOperator
     public SketchOperator(@Nullable final Operator child)
     {
         super(child);
-        this.groupColumns = IntStream.range(0,child.getSchema().numColumns()).toArray();
-        sketchBuffer = new RawSketchBuffer(SketchBuffer.DEFAULT_ROWS, SketchBuffer.DEFAULT_COLUMN);
-        //regardless of request, do a sketch
+        System.out.println("BUILDING SKETCH OPERATOR");
     }
     @Override
     protected TupleBatch fetchNextReady() throws Exception
@@ -79,8 +77,10 @@ public class SketchOperator extends UnaryOperator
                 resultBuffer.putInt(0,row);
                 resultBuffer.putInt(1,col);
                 resultBuffer.putInt(2, sketchBuffer.Counters[row][col]);
+                System.out.print(row + "," + col + "," + sketchBuffer.Counters[row][col]);
             }
         }
+        System.out.println();
     }
 
     private void processTupleBatch(TupleBatch tb) {
@@ -88,14 +88,17 @@ public class SketchOperator extends UnaryOperator
             int[] rowHashes = HashUtils.hashSubRowFamily(tb, groupColumns, i,SketchBuffer.DEFAULT_ROWS);
             for(int hid = 0; hid < SketchBuffer.DEFAULT_ROWS; hid++)
             {
-                int column = rowHashes[i] % SketchBuffer.DEFAULT_COLUMN;
+                int column =  ((rowHashes[hid] % SketchBuffer.DEFAULT_COLUMN) + SketchBuffer.DEFAULT_COLUMN) % SketchBuffer.DEFAULT_COLUMN;
                 sketchBuffer.Counters[hid][column]++;
             }
         }
     }
     @Override
     protected final void init(final ImmutableMap<String, Object> execEnvVars) throws DbException {
-       resultBuffer = new TupleBatchBuffer(getSchema());
+        resultBuffer = new TupleBatchBuffer(getSchema());
+        this.groupColumns = IntStream.range(0,getChild().getSchema().numColumns()).toArray();
+        sketchBuffer = new RawSketchBuffer(SketchBuffer.DEFAULT_ROWS, SketchBuffer.DEFAULT_COLUMN);
+        //regardless of request, do a sketch
     }
 
     @Override

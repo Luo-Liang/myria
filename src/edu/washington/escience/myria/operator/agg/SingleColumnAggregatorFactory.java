@@ -4,6 +4,8 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import com.google.common.base.Preconditions;
 
 import edu.washington.escience.myria.DbException;
@@ -36,11 +38,11 @@ public class SingleColumnAggregatorFactory implements AggregatorFactory {
     this(column, AggregationSketchOption.DoNotSketch, aggOps);
   }
 
-  @JsonCreator
+  @JsonIgnore
   public SingleColumnAggregatorFactory(
-          @JsonProperty(value = "column", required = true) final Integer column,
-          @JsonProperty(value = "sketch", required = false) final AggregationSketchOption option,
-          @JsonProperty(value = "aggOps", required = true) final AggregationOp... aggOps) {
+          final Integer column,
+          final AggregationSketchOption option,
+          final AggregationOp... aggOps) {
     this.column = Objects.requireNonNull(column, "column").intValue();
     this.aggOps = Objects.requireNonNull(aggOps, "aggOps");
     Preconditions.checkArgument(aggOps.length > 0, "no aggregation operators selected");
