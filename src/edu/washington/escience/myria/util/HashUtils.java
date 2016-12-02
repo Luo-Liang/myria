@@ -177,7 +177,7 @@ public final class HashUtils {
     int[] result = new int[requestedHashCount];
     for(int i = 0; i < requestedHashCount; i++)
     {
-      Hasher hasher = HASH_FUNCTIONS[0].newHasher();
+      Hasher hasher = HASH_FUNCTIONS[i].newHasher();
       for (int column : hashColumns)
       {
         addValue(hasher, table, column, row);
