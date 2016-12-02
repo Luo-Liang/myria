@@ -3,8 +3,10 @@ package edu.washington.escience.myria.expression;
 
         import java.io.IOException;
         import java.io.PrintWriter;
+        import java.util.List;
         import java.util.Set;
 
+        import com.google.common.collect.ImmutableList;
         import com.google.common.collect.ImmutableSet;
 
         import edu.washington.escience.myria.Type;
@@ -14,16 +16,20 @@ package edu.washington.escience.myria.expression;
  * Divide two operands in an expression tree. The return value is of type {@link Type.INT_TYPE} if both operands are
  * also INTs, and of type {@link Type.LONG_TYPE} otherwise.
  */
-public class HashExpression extends BinaryExpression {
+public class HashExpression extends NAryExpression {
 
     /***/
     private static final long serialVersionUID = 1L;
 
+    @SuppressWarnings("unused")
+    public HashExpression() {}
+
     /**
      * This is not really unused, it's used automagically by Jackson deserialization.
      */
-    @SuppressWarnings("unused")
-    private HashExpression() {}
+
+    private HashExpression(final List<ExpressionOperator> children) { super(ImmutableList.copyOf(children));}
+
 
     /**
      * hash the value.
@@ -31,9 +37,7 @@ public class HashExpression extends BinaryExpression {
      * @param left the left operand.
      * @param right the right operand.
      */
-    public HashExpression(final ExpressionOperator left, final ExpressionOperator right) {
-        super(left, right);
-    }
+
 
 
     @Override
@@ -43,12 +47,22 @@ public class HashExpression extends BinaryExpression {
 
     @Override
     public String getJavaString(final ExpressionOperatorParameter parameters) {
-        return new StringBuilder("com.google.common.hash.Hashing.murmur3_128( (int)(" )
-                .append(getLeft().getJavaString(parameters))
+        StringBuilder retval = new StringBuilder("com.google.common.hash.Hashing.murmur3_128( (int)(" )
+                .append(getChildren().get(0).getJavaString(parameters))
+                .append(")).newHasher()");
+        for(int i = 1; i < getChildren().size(); i++){
+            retval.append(".putObject(");
+            retval.append(getChildren().get(i).getJavaString(parameters));
+            retval.append(", edu.washington.escience.myria.util.TypeFunnel.INSTANCE)");
+        }
+        retval.append(".hash().asInt()");
+        return retval.toString();
+      /*  return new StringBuilder("com.google.common.hash.Hashing.murmur3_128( (int)(" )
+                .append(getChildren().get(0).getJavaString(parameters))
                 .append(")).newHasher().putObject(")
-                .append(getRight().getJavaString(parameters))
+                .append(getChildren().get(1).getJavaString(parameters))
                 .append(", edu.washington.escience.myria.util.TypeFunnel.INSTANCE).hash().asInt()")
-                .toString();
+                .toString();*/
     }
 }
 
