@@ -5,6 +5,9 @@ import static org.junit.Assert.assertNotNull;
 
 import java.util.Random;
 
+import com.google.common.hash.Hashing;
+import edu.washington.escience.myria.util.HashUtils;
+import edu.washington.escience.myria.util.TypeFunnel;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,6 +54,14 @@ public class MultiFieldHashPartitionFunctionTest {
       throw new RuntimeException(e);
     }
   }
+
+  @Test
+  public void testHash(){
+    //int test = HashUtils.addValue(Hashing.murmur3_128(41).newHasher(), Type.STRING_TYPE, 936).hash().asInt();
+    long test = Hashing.murmur3_128((int) (41L)).newHasher().putObject(936L, TypeFunnel.INSTANCE).hash().asInt();
+    assertEquals(test, 1457784506);
+  }
+
 
   /*
    * Generates a tuple batch source with the following schema: a (int), b (int), c (int)
