@@ -1,5 +1,6 @@
 package edu.washington.escience.myria.operator.agg;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
 import edu.washington.escience.myria.DbException;
@@ -40,10 +41,12 @@ public class SketchOperator extends UnaryOperator
     private transient TupleBatchBuffer resultBuffer;
     private transient RawSketchBuffer sketchBuffer;
 
-    public SketchOperator(@Nullable final Operator child)
+    @JsonCreator
+    public SketchOperator(@Nullable final Operator child, int[] groupIndexes)
     {
         super(child);
-        System.out.println("BUILDING SKETCH OPERATOR");
+        groupColumns = groupIndexes;
+        //System.out.println("BUILDING SKETCH OPERATOR");
     }
     @Override
     protected TupleBatch fetchNextReady() throws Exception
@@ -77,10 +80,10 @@ public class SketchOperator extends UnaryOperator
                 resultBuffer.putInt(0,row);
                 resultBuffer.putInt(1,col);
                 resultBuffer.putInt(2, sketchBuffer.Counters[row][col]);
-                System.out.print(row + "," + col + "," + sketchBuffer.Counters[row][col]);
+                //System.out.print(row + "," + col + "," + sketchBuffer.Counters[row][col]);
             }
         }
-        System.out.println();
+        //System.out.println();
     }
 
     private void processTupleBatch(TupleBatch tb) {
@@ -96,7 +99,7 @@ public class SketchOperator extends UnaryOperator
     @Override
     protected final void init(final ImmutableMap<String, Object> execEnvVars) throws DbException {
         resultBuffer = new TupleBatchBuffer(getSchema());
-        this.groupColumns = IntStream.range(0,getChild().getSchema().numColumns()).toArray();
+        //this.groupColumns = IntStream.range(0,getChild().getSchema().numColumns()).toArray();
         sketchBuffer = new RawSketchBuffer(SketchBuffer.DEFAULT_ROWS, SketchBuffer.DEFAULT_COLUMN);
         //regardless of request, do a sketch
     }
