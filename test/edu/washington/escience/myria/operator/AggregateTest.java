@@ -408,6 +408,22 @@ public class AggregateTest
         return tbb;
     }
 
+    public TupleBatchBuffer generateRandomLongTuples()
+    {
+        TwitterKTestData tktd=  new TwitterKTestData();
+        final Schema schema =
+                new Schema(
+                        ImmutableList.of(Type.LONG_TYPE, Type.LONG_TYPE), ImmutableList.of("id", "name"));
+
+        final TupleBatchBuffer tbb = new TupleBatchBuffer(schema);
+        for (int i = 0; i < tktd.As.length; i++)
+        {
+            tbb.putLong(0, tktd.As[i]);
+            tbb.putLong(1, tktd.Bs[i]);
+        }
+        return tbb;
+    }
+
     public TupleBatchBuffer generateRandomTuples(final int numTuples)
     {
         final String[] names = TestUtils.randomFixedLengthNumericString(1000, 1005, numTuples, 20);
@@ -510,7 +526,7 @@ public class AggregateTest
         SketchBuffer.DEFAULT_COLUMN = 1;
         final int numTuples = 1 + 2 * TupleBatch.BATCH_SIZE;
 
-        final TupleBatchBuffer testBase = generateRandomIntegerTuples(numTuples);
+        final TupleBatchBuffer testBase = generateRandomLongTuples();
         // group by name, aggregate on id
         SingleGroupByAggregate agg =
                 new SingleGroupByAggregate(
@@ -536,9 +552,10 @@ public class AggregateTest
         //TestUtils.assertTupleBagEqual(TestUtils.groupByMin(testBase, 0, 1), actualResult);
         HashMap<Tuple, Integer> sanityCheck = TestUtils.groupByCount(testBase, 0, 1);
         Assert.assertEquals(actualResult.size(), sanityCheck.size());
+        TwitterKTestData tktd =new TwitterKTestData();
         for (Map.Entry<Tuple, Integer> s : actualResult.entrySet())
         {
-            Assert.assertTrue((Long) s.getKey().get(1) == numTuples);
+            Assert.assertTrue((Long) s.getKey().get(1) == tktd.As.length);
         }
     }
 

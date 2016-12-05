@@ -21,6 +21,8 @@ import edu.washington.escience.myria.operator.UnaryOperator;
 import edu.washington.escience.myria.storage.ReadableTable;
 import edu.washington.escience.myria.storage.TupleBatch;
 import edu.washington.escience.myria.storage.TupleBatchBuffer;
+import org.joda.time.IllegalFieldValueException;
+import scala.tools.nsc.backend.icode.Primitives;
 
 /**
  * The Aggregation operator that computes an aggregate (e.g., sum, avg, max, min) with a single group by column.
@@ -273,6 +275,7 @@ public class SingleGroupByAggregate extends UnaryOperator {
     private void generateResult(final TupleBatchBuffer resultBuffer) throws DbException {
 
         if (sketchEnabled) {
+            //
             for (Object key : sketchGroupKeys) {
                 switch (gColumnType) {
                     case BOOLEAN_TYPE:
@@ -302,6 +305,7 @@ public class SingleGroupByAggregate extends UnaryOperator {
                 //we need to stuff things into that array. Create an array with elements pointing to arrays.
                 Object[] pointersToPointers = new Object[aggregators.length];
                 for (int i = 0; i < pointersToPointers.length; i++) {
+                    //sketchBuffers[i].DebugCheckConsistency(2715);
                     if (aggregators[i].getSketchOption() == AggregationSketchOption.UseSketchMin)
                         pointersToPointers[i] = sketchBuffers[i].getCountMinStates(key, gColumnType);
                     else if (aggregators[i].getSketchOption() == AggregationSketchOption.UseSketch)
@@ -409,8 +413,14 @@ public class SingleGroupByAggregate extends UnaryOperator {
         boolean anySketchAggregates =
                 Arrays.stream(aggregators)
                         .anyMatch(o -> o.getSketchOption() != AggregationSketchOption.DoNotSketch);
-        if(anySketchAggregates) sketchEnabled = true;
-        if (anyPreciseAggregates) sketchEnabled = false;
+       //if(anySketchAggregates == false && aggregators.length == 1 && aggregators[0].getSketchOption() == AggregationSketchOption.DoNotSketch)
+       //{
+       //    PrimitiveAggregator agg = (PrimitiveAggregator)aggregators[0];
+       //    if(agg.aggOps.size() == 1 && agg.aggOps.contains(PrimitiveAggregator.AggregationOp.COUNT)) {
+       //        throw new IllegalStateException("sketchEnabled = " + sketchEnabled + " " + ((SingleColumnAggregatorFactory)factories[0]).getSketchOption() + " " + ((IntegerAggregator)agg).getSketchOption());
+       //    }
+       //}
+        if(anySketchAggregates && !anyPreciseAggregates) sketchEnabled = true;
         if (gColumnType == Type.BOOLEAN_TYPE) sketchEnabled = false;
         if (sketchEnabled) {
             //TODO: can only enumerate it once for TupleBatchSource.

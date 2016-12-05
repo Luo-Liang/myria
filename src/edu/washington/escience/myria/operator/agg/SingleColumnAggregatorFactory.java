@@ -13,6 +13,8 @@ import edu.washington.escience.myria.Schema;
 import edu.washington.escience.myria.Type;
 import edu.washington.escience.myria.operator.agg.PrimitiveAggregator.AggregationOp;
 
+import javax.validation.constraints.AssertTrue;
+
 /**
  * An aggregator for a column of primitive type.
  */
@@ -41,7 +43,7 @@ public class SingleColumnAggregatorFactory implements AggregatorFactory {
   @JsonCreator
   public SingleColumnAggregatorFactory(
           @JsonProperty(value = "column", required = true) final Integer column,
-          @JsonProperty(value = "sketchOption", required = true) final AggregationSketchOption option,
+          @JsonProperty(value = "sketchOption") final AggregationSketchOption option,
           @JsonProperty(value = "aggOps", required = true) final AggregationOp... aggOps) {
     this.column = Objects.requireNonNull(column, "column").intValue();
     this.aggOps = Objects.requireNonNull(aggOps, "aggOps");
@@ -49,7 +51,15 @@ public class SingleColumnAggregatorFactory implements AggregatorFactory {
     for (int i = 0; i < aggOps.length; ++i) {
       Preconditions.checkNotNull(aggOps[i], "aggregation operator %s cannot be null", i);
     }
-    this.option = option;
+    if(option==null)
+      this.option = AggregationSketchOption.DoNotSketch;
+    else
+      this.option = option;
+  }
+
+  public AggregationSketchOption getSketchOption()
+  {
+    return option;
   }
 
 
@@ -73,7 +83,17 @@ public class SingleColumnAggregatorFactory implements AggregatorFactory {
         IntegerAggregator agg = new IntegerAggregator(inputName, aggOps, column, option);
         return agg;
       case LONG_TYPE:
-        return new LongAggregator(inputName, aggOps, column);
+        if(option == AggregationSketchOption.DoNotSketch) {
+          if(aggOps[0] == AggregationOp.COUNT)
+          {
+            throw new IllegalStateException(option + " is the input option to this factory, which is not sketch");
+          }
+          return new LongAggregator(inputName, aggOps, column);
+        }
+        else {
+          return new IntegerAggregator(inputName, aggOps, column, option);
+          //TODO: currently, even if type is long, downgraee it to int if sketch is enabled.
+        }
       case STRING_TYPE:
         return new StringAggregator(inputName, aggOps, column);
     }

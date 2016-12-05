@@ -12,8 +12,8 @@ import java.util.Arrays;
  * Created by Liang Luo Local on 10/23/2016.
  */
 public class SketchBuffer {
-    public static int DEFAULT_ROWS = 2;
-    public static int DEFAULT_COLUMN = 5;
+    public static int DEFAULT_ROWS = 1;
+    public static int DEFAULT_COLUMN = 1;
     private Object[][] sketchArrays;
     private int hashFunctionsCount;
     private int rowSize;
@@ -87,5 +87,19 @@ public class SketchBuffer {
         results[0] = operands1;
         results[1] = operands2;
         return results;
+    }
+
+    public void DebugCheckConsistency(int allEquals)
+    {
+        for(int i = 0; i < hashFunctionsCount; i ++)
+        {
+            for(int j = 0; j < rowSize; j++)
+            {
+                if(((IntegerAggregator.IntAggState)sketchArrays[i][j]).DebugGetCount() != allEquals)
+                {
+                    throw new IllegalStateException("ExpectedVal in ("+i+","+j+") = " + ((IntegerAggregator.IntAggState)sketchArrays[i][j]).DebugGetCount()+" vs " + allEquals);
+                }
+            }
+        }
     }
 }

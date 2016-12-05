@@ -36,6 +36,10 @@ public class IntegerAggregator extends PrimitiveAggregator {
             final int column,
             AggregationSketchOption sketchOpt) {
         this(aFieldName, aggOps, column);
+        /*if(aggOps[0] == AggregationOp.COUNT && sketchOption == AggregationSketchOption.DoNotSketch)
+        {
+            throw new IllegalStateException("sketchOption = " + sketchOpt);
+        }*/
         this.sketchOption = sketchOpt;
         if (Arrays.stream(aggOps).anyMatch(o -> o != AggregationOp.COUNT && sketchOpt != AggregationSketchOption.DoNotSketch)) {
             throw new IllegalArgumentException("Do not know how to sketch on non count aggregation: ");
@@ -254,6 +258,11 @@ public class IntegerAggregator extends PrimitiveAggregator {
             result.sum = this.sum - other.sum;
             result.sumSquared = this.sumSquared = other.sumSquared;
             return result;
+        }
+
+        public long DebugGetCount()
+        {
+            return count;
         }
     }
 }
