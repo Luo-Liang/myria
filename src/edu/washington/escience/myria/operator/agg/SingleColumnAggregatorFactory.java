@@ -31,18 +31,18 @@ public class SingleColumnAggregatorFactory implements AggregatorFactory {
    * @param column which column of the input to aggregate over.
    * @param aggOps which aggregate operations are requested. See {@link PrimitiveAggregator}.
    */
-  @JsonCreator
+  @JsonIgnore
   public SingleColumnAggregatorFactory(
-      @JsonProperty(value = "column", required = true) final Integer column,
-      @JsonProperty(value = "aggOps", required = true) final AggregationOp... aggOps) {
+      final Integer column,
+      final AggregationOp... aggOps) {
     this(column, AggregationSketchOption.DoNotSketch, aggOps);
   }
 
-  @JsonIgnore
+  @JsonCreator
   public SingleColumnAggregatorFactory(
-          final Integer column,
-          final AggregationSketchOption option,
-          final AggregationOp... aggOps) {
+          @JsonProperty(value = "column", required = true) final Integer column,
+          @JsonProperty(value = "sketchOption", required = true) final AggregationSketchOption option,
+          @JsonProperty(value = "aggOps", required = true) final AggregationOp... aggOps) {
     this.column = Objects.requireNonNull(column, "column").intValue();
     this.aggOps = Objects.requireNonNull(aggOps, "aggOps");
     Preconditions.checkArgument(aggOps.length > 0, "no aggregation operators selected");
