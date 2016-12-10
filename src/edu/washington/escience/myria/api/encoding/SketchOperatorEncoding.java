@@ -12,9 +12,11 @@ import javax.annotation.Nonnull;
  */
 public class SketchOperatorEncoding extends UnaryOperatorEncoding<SketchOperator> {
     @Required public int[] argGroupFields;
+    @Required public int argColumns;
+    @Required public int argRows;
 
     @Override
     public SketchOperator construct(@Nonnull QueryConstruct.ConstructArgs args) throws MyriaApiException {
-        return new SketchOperator(null,argGroupFields );
+        return new SketchOperator(null,argGroupFields, argColumns,argRows );
     }
 }

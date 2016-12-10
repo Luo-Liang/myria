@@ -1,0 +1,141 @@
+{
+  "profilingMode": [],
+  "logicalRa": "Store(public:adhoc:Twitter_aggregate)[Shuffle($1)[Apply(cnt=$1,id=$0)[GroupBy(a; COUNT($0))[Apply(a=$0)[Scan(public:adhoc:TwitterK)]]]]]",
+  "language": "myrial",
+  "rawQuery": "T1 = scan(TwitterK);\nAgg = [from T1 emit count(a) AS cnt, T1.a AS id];\nstore(Agg, Twitter_aggregate, [$1]);",
+  "plan": {
+    "type": "SubQuery",
+    "fragments": [
+      {
+        "operators": [
+          {
+            "opId": 0,
+            "opType": "ShuffleConsumer",
+            "argOperatorId": 1,
+            "opName": "MyriaShuffleConsumer"
+          },
+          {
+            "relationKey": {
+              "userName": "public",
+              "relationName": "Sketch_Result_Debug",
+              "programName": "adhoc"
+            },
+            "opName": "MyriaStore(public:adhoc:Sketch_Result)",
+            "argChild": 0,
+            "opType": "DbInsert",
+            "opId": 2,
+            "partitionFunction": {
+              "type": "SingleFieldHash",
+              "index": 1
+            },
+            "argOverwriteTable": true
+          }
+        ]
+      },
+      {
+        "operators": [
+          {
+            "opId": 3,
+            "opType": "ShuffleConsumer",
+            "argOperatorId": 4,
+            "opName": "MyriaShuffleConsumer"
+          },
+          {
+            "opName": "MyriaGroupBy($0; $1; SUM($2))",
+            "argGroupFields": [
+              0,
+              1
+            ],
+            "argChild": 3,
+            "opType": "MultiGroupByAggregate",
+            "opId": 5,
+            "aggregators": [
+              {
+                "aggOps": [
+                  "SUM"
+                ],
+                "type": "SingleColumn",
+                "column": 2
+              }
+            ]
+          },
+          {
+            "opId": 6,
+            "opType": "Apply",
+            "argChild": 5,
+            "emitExpressions": [
+              {
+                "rootExpressionOperator": {
+                  "type": "VARIABLE",
+                  "columnIdx": 0
+                },
+                "outputName": "hid"
+              },
+              {
+                "rootExpressionOperator": {
+                  "type": "VARIABLE",
+                  "columnIdx": 1
+                },
+                "outputName": "colid"
+              },
+              {
+                "rootExpressionOperator": {
+                  "type": "VARIABLE",
+                  "columnIdx": 2
+                },
+                "outputName": "cnt"
+              }
+            ],
+            "opName": "MyriaApply(cid=$1,hid=$0,cnt=$2)"
+          },
+          {
+            "opId": 1,
+            "opType": "ShuffleProducer",
+            "argChild": 6,
+            "opName": "MyriaShuffleProducer(h($1))",
+            "argPf": {
+              "type": "SingleFieldHash",
+              "index": 1
+            }
+          }
+        ]
+      },
+      {
+        "operators": [
+          {
+            "opId": 7,
+            "opType": "TableScan",
+            "relationKey": {
+              "userName": "public",
+              "relationName": "Road6",
+              "programName": "adhoc"
+            },
+            "opName": "MyriaScan(public:adhoc:TwitterK)"
+          },
+          {
+            "opName": "SketchOperator(a)",
+            "argChild": 7,
+            "opType": "SketchOperator",
+	      "argGroupFields" : [0,1,2,3],  
+	      "argColumns" : 100,
+	      "argRows" : 10,
+            "opId": 9
+          },
+          {
+            "opId": 4,
+            "opType": "ShuffleProducer",
+            "argChild": 9,
+            "opName": "MyriaShuffleProducer(h($0))",
+            "argPf": {
+              "type": "MultiFieldHash",
+              "indexes": [
+                0,
+                1
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

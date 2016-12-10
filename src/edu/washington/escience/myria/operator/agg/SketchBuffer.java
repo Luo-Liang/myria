@@ -12,8 +12,8 @@ import java.util.Arrays;
  * Created by Liang Luo Local on 10/23/2016.
  */
 public class SketchBuffer {
-    public static int DEFAULT_ROWS = 1;
-    public static int DEFAULT_COLUMN = 1;
+    public static int DEFAULT_ROWS = 10;
+    public static int DEFAULT_COLUMN = 100;
     private Object[][] sketchArrays;
     private int hashFunctionsCount;
     private int rowSize;

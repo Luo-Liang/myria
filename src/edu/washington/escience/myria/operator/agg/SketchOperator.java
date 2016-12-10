@@ -40,13 +40,16 @@ public class SketchOperator extends UnaryOperator
     int[] groupColumns;
     private transient TupleBatchBuffer resultBuffer;
     private transient RawSketchBuffer sketchBuffer;
-
+    private int chosenColumns;
+    private int chosenRows;
     @JsonCreator
-    public SketchOperator(@Nullable final Operator child, int[] groupIndexes)
+    public SketchOperator(@Nullable final Operator child, int[] groupIndexes, int cc, int cr)
     {
         super(child);
         groupColumns = groupIndexes;
         //System.out.println("BUILDING SKETCH OPERATOR");
+        chosenColumns = cc;
+        chosenRows = cr;
     }
     @Override
     protected TupleBatch fetchNextReady() throws Exception
@@ -88,10 +91,10 @@ public class SketchOperator extends UnaryOperator
 
     private void processTupleBatch(TupleBatch tb) {
         for (int i = 0; i < tb.numTuples(); ++i) {
-            int[] rowHashes = HashUtils.hashSubRowFamily(tb, groupColumns, i,SketchBuffer.DEFAULT_ROWS);
-            for(int hid = 0; hid < SketchBuffer.DEFAULT_ROWS; hid++)
+            int[] rowHashes = HashUtils.hashSubRowFamily(tb, groupColumns, i,chosenRows);
+            for(int hid = 0; hid < chosenRows; hid++)
             {
-                int column =  ((rowHashes[hid] % SketchBuffer.DEFAULT_COLUMN) + SketchBuffer.DEFAULT_COLUMN) % SketchBuffer.DEFAULT_COLUMN;
+                int column =  ((rowHashes[hid] % chosenColumns) + chosenColumns) % chosenColumns;
                 sketchBuffer.Counters[hid][column]++;
             }
         }
@@ -100,7 +103,7 @@ public class SketchOperator extends UnaryOperator
     protected final void init(final ImmutableMap<String, Object> execEnvVars) throws DbException {
         resultBuffer = new TupleBatchBuffer(getSchema());
         //this.groupColumns = IntStream.range(0,getChild().getSchema().numColumns()).toArray();
-        sketchBuffer = new RawSketchBuffer(SketchBuffer.DEFAULT_ROWS, SketchBuffer.DEFAULT_COLUMN);
+        sketchBuffer = new RawSketchBuffer(chosenRows, chosenColumns);
         //regardless of request, do a sketch
     }
 
